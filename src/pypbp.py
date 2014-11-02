@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
+
 ###############################################################################
-## Copyright (C) <year>  <name of author>
+## Copyright (C) 2014 Jorge Zilbermann ealdorj@gmail.com
 ##
 ##    This program is free software: you can redistribute it and/or modify
 ##    it under the terms of the GNU General Public License as published by
@@ -14,8 +16,6 @@
 ##    You should have received a copy of the GNU General Public License
 ##    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
-
-# -*- coding: utf-8 -*-
 
 import sys
 import string
@@ -43,21 +43,21 @@ class Cell():
 	""" Clase que representa una celda
 
     Args:
-        posx(int): posición horizontal
-        posy(int): posición vertical
-        number(int): número
+        posx(int): posicion horizontal
+        posy(int): posicion vertical
+        number(int): numero
 
     Attributes:
     	background_color(set): color del fondo
     	border_color(set): color del borde
-    	border_color_sprite(set): color del sprite de selección
+    	border_color_sprite(set): color del sprite de seleccion
     	number_color(set): color del número
-    	lines_color(set): color de las lineas de conexión
+    	lines_color(set): color de las lineas de conexion
     	rect(Rect): rectangulo de la celda
     	connections(list): lista de Celdas conectadas. Todas
-    	lines(list): lista con las lineas de conexión
+    	lines(list): lista con las lineas de conexion
     	bsize(int): tamaño del borde
-    	lsize(int): tamaño de las lineas de conexión
+    	lsize(int): tamaño de las lineas de conexion
 
     """
 
