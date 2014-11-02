@@ -382,11 +382,21 @@ def init_puzzle(fname):
 	except IOError:
 		print "File not found"
 		sys,exit()
-	(ncolumns, nrows) = string.split(string.strip(f.readline()), ',')
+	(ncolumns, nrows) = string.split(string.strip(f.readline()), ' ')
+	print ncolumns
+	print nrows
 	table = [[Cell(x*CELL_WIDTH, y*CELL_WIDTH, 0) for y in range(0, int(nrows))] for x in range(0, int(ncolumns))]
-	for line in f:
-		aux = string.split(string.strip(line), ',')
-		table[int(aux[0])][int(aux[1])] = Cell(int(aux[0])*CELL_WIDTH, int(aux[1])*CELL_WIDTH, int(aux[2]))
+
+	# for line in f:
+	# 	aux = string.split(string.strip(line), ',')
+	# 	table[int(aux[0])][int(aux[1])] = Cell(int(aux[0])*CELL_WIDTH, int(aux[1])*CELL_WIDTH, int(aux[2]))
+
+	for x in table:
+		num = string.split(f.readline())
+		for cell in x:
+			aux = num.pop(0)
+			cell.number = int(aux)
+
 	return ncolumns, nrows, table
 
 if __name__ == '__main__':

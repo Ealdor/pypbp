@@ -18,6 +18,10 @@ To launch the game write on a terminal:
 
 See the file *test_11x11.txt* for an example of a puzzle. The program does not check if the puzzle is valid or not. Syntax: 
 * First line: number of columns, number of rows
-* Line: column, row, number. 
+* Line: number of the cell
+
+
+Puzzles can be from 1x1 to 800x800 (or so).
+Game resolution is set to: 1024x600
 
 ###Contact: ealdorj@gmail.com
