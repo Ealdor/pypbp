@@ -173,8 +173,7 @@ class Table():
 				else:
 					break
 		self.sprites_list.draw(self.tsurface) # dibujamos el cellsprite
-		if self.tcheck == 0: screen.blit(self.nfont.render("WINNER", True, BLUE, FONDO), (CELL_WIDTH, 5))
-		else: screen.blit(self.nfont.render("LOOSER", True, RED, FONDO), (CELL_WIDTH, 5))
+		if self.tcheck == 0: screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 5))
 		screen.blit(self.tsurface, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), aux)
 
 	def check(self, event):
@@ -383,20 +382,11 @@ def init_puzzle(fname):
 		print "File not found"
 		sys,exit()
 	(ncolumns, nrows) = string.split(string.strip(f.readline()), ' ')
-	print ncolumns
-	print nrows
 	table = [[Cell(x*CELL_WIDTH, y*CELL_WIDTH, 0) for y in range(0, int(nrows))] for x in range(0, int(ncolumns))]
-
-	# for line in f:
-	# 	aux = string.split(string.strip(line), ',')
-	# 	table[int(aux[0])][int(aux[1])] = Cell(int(aux[0])*CELL_WIDTH, int(aux[1])*CELL_WIDTH, int(aux[2]))
-
 	for x in table:
 		num = string.split(f.readline())
 		for cell in x:
-			aux = num.pop(0)
-			cell.number = int(aux)
-
+			cell.number = int(num.pop(0))
 	return ncolumns, nrows, table
 
 if __name__ == '__main__':
