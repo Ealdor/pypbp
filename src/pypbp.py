@@ -17,14 +17,13 @@
 ##    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
+import os
 import sys
 import string
 import pygame
 import pygame.locals
 
-# res: 1024x600 -> CELL: 20 -> CAMX: (SW/CW) / 2, CAMY: (SH/CW) / 2; zoom: CW = SW / (CAM + 2)
-# 500x500 < 30 FPS; 800x800 MAX
-
+# res: 1024x600 -> CELL: 20 -> CAMX: (SW/CW) / 2, CAMY: (SH/CW) / 2
 CELL_WIDTH = 20
 FONT_SIZE = 20
 SCREEN_WIDTH = 1024
@@ -363,7 +362,7 @@ def init_pygame():
 	pygame.font.init()
 
 def init_puzzle(fname):
-	""" Maneja la pulsación de teclas del ChatBox 
+	""" Inicializa el tablero desde un archivo pasado
 
 	Args:
 		fname(string): nombre del fichero
@@ -375,8 +374,6 @@ def init_puzzle(fname):
 
 	"""
 
-	ncolumns = 0
-	nrows = 0
 	try:
 		f = open(fname, 'r')
 	except IOError:

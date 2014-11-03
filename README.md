@@ -13,7 +13,7 @@ There is only one unique way to link all the squares in a properly-constructed p
 * Use *c* to delete a line.
 
 ###Considerations:
-To launch the game write on a terminal: 
+Puzzles are inside puzzle directory. To launch the game write on a terminal: 
 > python pypbp.py filename
 
 See the file *test_11x11.txt* for an example of a puzzle. The program does not check if the puzzle is valid or not. Syntax: 
