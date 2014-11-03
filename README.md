@@ -30,5 +30,4 @@ ealdorj@gmail.com
 
 ###TODO:
 * Use colors.
-* Support more resolutions.
 * Make the puzzle generator from an image.

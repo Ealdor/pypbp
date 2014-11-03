@@ -231,6 +231,7 @@ class Table():
 			elif event.key == pygame.locals.K_MINUS: # zoom out
 				aux = (self.zoom[0]-self.twidth, self.zoom[1]-self.theight)
 				if aux[0] > 0 and aux[1] > 0:
+					self.cell_move(self.table[0][0])
 					self.zoom = aux
 			elif event.key == pygame.locals.K_PLUS: # restore zoom
 				self.zoom = self.dim
