@@ -234,6 +234,7 @@ class Table():
 					self.zoom = aux
 			elif event.key == pygame.locals.K_PLUS: # restore zoom
 				self.zoom = self.dim
+				self.stop = False
 			return True
 		elif event.type == pygame.locals.KEYUP and event.key == pygame.locals.K_SPACE: # levantamos el espacio
 			self.process(5, False)
@@ -283,8 +284,6 @@ class Table():
 
 		if (self.zoom != self.dim):
 			self.stop = True
-		else:
-			self.stop = False
 
 		oldCell = self.cellsprite.cell
 		if types == 0: # presionamos del espacio
