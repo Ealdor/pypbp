@@ -117,7 +117,7 @@ class Table():
     	nfont(Font): fuente
     	history(list): lista para guardar la historia de movimiento
     	stop(bool): atributo para parar 
-    	tcheck(bool): variable de comprobacion de puzzle completo
+    	tcheck(int): variable de comprobacion de puzzle completo
     	
     """	
 
@@ -159,8 +159,17 @@ class Table():
 			aux[1] = (((self.cellsprite.cell.posy/CELL_WIDTH)-CAMERAY)*CELL_WIDTH)+(2*CELL_WIDTH)
 		self.tsurface.fill(FONDO, aux)
 		screen.fill(FONDO)
-		for x in self.table:
-			for cell in x:
+		(emp, ter, emp2, ter2) = (0, self.theight, 0, self.twidth) # solo recorremos la parte de la tabla que se ve (MOAR FPS)
+		if self.zoom == self.dim:
+			(emp, ter, emp2, ter2) = (0, 28, 0, 49)
+			if self.cellsprite.cell.posx/CELL_WIDTH >= CAMERAX-1:
+				emp2 = aux[0]/CELL_WIDTH
+				ter2 = self.cellsprite.cell.posx/CELL_WIDTH + CELL_WIDTH + 6
+			if self.cellsprite.cell.posy/CELL_WIDTH >= CAMERAY-1:
+				emp = aux[1]/CELL_WIDTH
+				ter = self.cellsprite.cell.posy/CELL_WIDTH + CELL_WIDTH - 5
+		for x in self.table[emp2:ter2]:
+			for cell in x[emp:ter]:
 				if (cell.posx >= aux[0] and cell.posx < aux[0]+SCREEN_WIDTH-(3*CELL_WIDTH)) or (self.zoom != self.dim):
 					if (cell.posy >= aux[1] and cell.posy < aux[1]+SCREEN_HEIGHT-(2*CELL_WIDTH)) or (self.zoom != self.dim):
 						if (cell.number == 0 and len(cell.lines) > 1 and cell.background_color == WHITE) or (cell.number != 0 and len(cell.lines) > 1 and cell.background_color == WHITE and cell.number_color != GREY):
@@ -171,8 +180,6 @@ class Table():
 							pygame.draw.lines(self.tsurface, cell.lines_color, False, cell.lines, cell.lsize)
 						if cell.number != 0: # dibujamos el número de la celda si no es cero
 							self.tsurface.blit(self.nfont.render(str(cell.number), True, cell.number_color, cell.background_color), (cell.posx+(CELL_WIDTH - self.nfont.size(str(cell.number))[0])/2, cell.posy+(CELL_WIDTH - self.nfont.size(str(cell.number))[1])/2))
-				else:
-					break
 		self.sprites_list.draw(self.tsurface) # dibujamos el cellsprite
 		if self.tcheck == 0: screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 5))
 		else: screen.blit(self.nfont.render("{0} LEFT".format(self.tcheck), True, RED, FONDO), (CELL_WIDTH, 5))
