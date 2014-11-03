@@ -11,6 +11,7 @@ There is only one unique way to link all the squares in a properly-constructed p
 * Use *key arrows* to move through the puzzle table. Use *x* while move to move faster.
 * Use *space* while move to draw the lines.
 * Use *c* to delete a line.
+* Use *-* to zoom out and *+* to restore to original zoom. You cannot move or paint if there is zoom.
 
 ###Considerations:
 Puzzles are inside puzzle directory. To launch the game write on a terminal: 

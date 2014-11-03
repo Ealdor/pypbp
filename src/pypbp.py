@@ -127,6 +127,7 @@ class Table():
 		self.tposx = tposx
 		self.tposy = tposy
 		self.tsurface = pygame.Surface([self.twidth*CELL_WIDTH, self.theight*CELL_WIDTH])
+		self.dim = self.tsurface.get_size()
 		self.table = table
 		self.cellsprite = CellSprite(self.table[0][0], 3)
 		self.sprites_list = pygame.sprite.Group()
@@ -136,6 +137,7 @@ class Table():
 		self.stop = False
 		self.tcheck = 0
 		self.win()
+		self.zoom = self.dim
 
 	def win(self):
 		""" Función que define la regla para superar el puzzle """
@@ -159,8 +161,8 @@ class Table():
 		screen.fill(FONDO)
 		for x in self.table:
 			for cell in x:
-				if cell.posx >= aux[0] and cell.posx < aux[0]+SCREEN_WIDTH-(3*CELL_WIDTH):
-					if cell.posy >= aux[1] and cell.posy < aux[1]+SCREEN_HEIGHT-(2*CELL_WIDTH):
+				if (cell.posx >= aux[0] and cell.posx < aux[0]+SCREEN_WIDTH-(3*CELL_WIDTH)) or (self.zoom != self.dim):
+					if (cell.posy >= aux[1] and cell.posy < aux[1]+SCREEN_HEIGHT-(2*CELL_WIDTH)) or (self.zoom != self.dim):
 						if (cell.number == 0 and len(cell.lines) > 1 and cell.background_color == WHITE) or (cell.number != 0 and len(cell.lines) > 1 and cell.background_color == WHITE and cell.number_color != GREY):
 							cell.lines = cell.lines[0:1]
 						pygame.draw.rect(self.tsurface, cell.background_color, cell.rect, 0) # dibujamos el rectangulo de la celda
@@ -174,7 +176,10 @@ class Table():
 		self.sprites_list.draw(self.tsurface) # dibujamos el cellsprite
 		if self.tcheck == 0: screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 5))
 		else: screen.blit(self.nfont.render("{0} LEFT".format(self.tcheck), True, RED, FONDO), (CELL_WIDTH, 5))
-		screen.blit(self.tsurface, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), aux)
+		if self.zoom != self.dim:
+			screen.blit(pygame.transform.scale(self.tsurface, self.zoom), (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), aux)
+		else:
+			screen.blit(self.tsurface, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), aux)
 
 	def check(self, event):
 		""" Función para recoger los eventos del teclado 
@@ -223,6 +228,12 @@ class Table():
 					self.process(4, False, (1, 0))
 			elif event.key == pygame.locals.K_c: # c (borrar)
 				self.process(6, False)
+			elif event.key == pygame.locals.K_MINUS: # zoom out
+				aux = (self.zoom[0]-self.twidth, self.zoom[1]-self.theight)
+				if aux[0] > 0 and aux[1] > 0:
+					self.zoom = aux
+			elif event.key == pygame.locals.K_PLUS: # restore zoom
+				self.zoom = self.dim
 			return True
 		elif event.type == pygame.locals.KEYUP and event.key == pygame.locals.K_SPACE: # levantamos el espacio
 			self.process(5, False)
@@ -269,6 +280,11 @@ class Table():
 			space(bool): espacio presionado o no
 
 		"""
+
+		if (self.zoom != self.dim):
+			self.stop = True
+		else:
+			self.stop = False
 
 		oldCell = self.cellsprite.cell
 		if types == 0: # presionamos del espacio
