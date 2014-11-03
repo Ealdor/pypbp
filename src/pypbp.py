@@ -145,7 +145,7 @@ class Table():
 			for cell in x:
 				if cell.number > 1:
 					self.tcheck += cell.number
-				if cell.number == 1:
+				elif cell.number == 1:
 					self.tcheck += cell.number+1
 
 	def draw(self):
@@ -174,6 +174,7 @@ class Table():
 					break
 		self.sprites_list.draw(self.tsurface) # dibujamos el cellsprite
 		if self.tcheck == 0: screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 5))
+		else: screen.blit(self.nfont.render("{0} LEFT".format(self.tcheck), True, RED, FONDO), (CELL_WIDTH, 5))
 		screen.blit(self.tsurface, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), aux)
 
 	def check(self, event):
@@ -203,22 +204,22 @@ class Table():
 					self.process(0, True)
 			elif event.key == pygame.locals.K_DOWN: # abajo
 				if pygame.key.get_pressed()[pygame.locals.K_x] != 0: # abajoplus
-					self.process(1, False, (0, 10))
+					self.process(1, False, (0, 5))
 				else:
 					self.process(1, False, (0, 1))
 			elif event.key == pygame.locals.K_UP: # arriba
 				if pygame.key.get_pressed()[pygame.locals.K_x] != 0: # arribaplus
-					self.process(2, False, (0, -10))
+					self.process(2, False, (0, -5))
 				else:
 					self.process(2, False, (0, -1))
 			elif event.key == pygame.locals.K_LEFT: # izquierda
 				if pygame.key.get_pressed()[pygame.locals.K_x] != 0: # izquierdaplus
-					self.process(3, False, (-10, 0))
+					self.process(3, False, (-5, 0))
 				else:
 					self.process(3, False, (-1, 0))
 			elif event.key == pygame.locals.K_RIGHT: # derecha
 				if pygame.key.get_pressed()[pygame.locals.K_x] != 0: # derechaplus
-					self.process(4, False, (10, 0))
+					self.process(4, False, (5, 0))
 				else:
 					self.process(4, False, (1, 0))
 			elif event.key == pygame.locals.K_c: # c (borrar)
@@ -383,10 +384,10 @@ def init_puzzle(fname):
 		sys,exit()
 	(ncolumns, nrows) = string.split(string.strip(f.readline()), ' ')
 	table = [[Cell(x*CELL_WIDTH, y*CELL_WIDTH, 0) for y in range(0, int(nrows))] for x in range(0, int(ncolumns))]
-	for x in table:
+	for x in range(0, int(nrows)):
 		num = string.split(f.readline())
-		for cell in x:
-			cell.number = int(num.pop(0))
+		for y in range(0, int(ncolumns)):
+			table[y][x].number = int(num.pop(0))
 	return ncolumns, nrows, table
 
 if __name__ == '__main__':
