@@ -400,12 +400,11 @@ def init_puzzle(fname):
 		print "File not found"
 		sys,exit()
 	(ncolumns, nrows) = string.split(string.strip(f.readline()), ' ')
-	(ncolumns, nrows) = (90, 90)
-	table = [[Cell(x*CELL_WIDTH, y*CELL_WIDTH, 2) for y in range(0, int(nrows))] for x in range(0, int(ncolumns))]
-	# for x in range(0, int(nrows)):
-	# 	num = string.split(f.readline())
-	# 	for y in range(0, int(ncolumns)):
-	# 		table[y][x].number = int(num.pop(0))
+	table = [[Cell(x*CELL_WIDTH, y*CELL_WIDTH, 0) for y in range(0, int(nrows))] for x in range(0, int(ncolumns))]
+	for x in range(0, int(nrows)):
+		num = string.split(f.readline())
+		for y in range(0, int(ncolumns)):
+			table[y][x].number = int(num.pop(0))
 	return ncolumns, nrows, table
 
 if __name__ == '__main__':
