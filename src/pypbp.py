@@ -171,7 +171,7 @@ class Table():
 		screen.fill(FONDO)
 		for x in self.table[emp2:ter2]:
 			for cell in x[emp:ter]:
-				if (cell.number == 0 and len(cell.lines) > 1 and cell.background_color == WHITE) or (cell.number != 0 and len(cell.lines) > 1 and cell.background_color == WHITE and cell.number_color != GREY):
+				if (cell.number == 0 and len(cell.lines) > 1 and cell.background_color == WHITE) or (cell.number != 0 and len(cell.lines) > 1 and cell.background_color == WHITE and cell.number_color != GREY) or (cell.number == 1 and len(cell.lines) > 1): # limpieza por errores
 					cell.lines = cell.lines[0:1]
 				pygame.draw.rect(self.tsurface, cell.background_color, cell.rect, 0) # dibujamos el rectangulo de la celda
 				pygame.draw.rect(self.tsurface, cell.border_color, cell.rect, cell.bsize) # dibujamos el borde de la celda
@@ -234,12 +234,12 @@ class Table():
 					self.process(4, False, (1, 0))
 			elif event.key == pygame.locals.K_c: # c (borrar)
 				self.process(6, False)
-			elif event.key == pygame.locals.K_MINUS: # zoom out
+			elif event.unicode == '-': # zoom out
 				aux = (self.zoom[0]-self.twidth, self.zoom[1]-self.theight)
 				if aux[0] > 0 and aux[1] > 0:
 					self.cell_move(self.table[0][0])
 					self.zoom = aux
-			elif event.key == pygame.locals.K_PLUS: # restore zoom
+			elif event.unicode == '+': # restore zoom
 				self.zoom = self.dim
 				self.stop = False
 			return True
@@ -289,95 +289,93 @@ class Table():
 
 		"""
 
-		if (self.zoom != self.dim):
-			self.stop = True
-
-		oldCell = self.cellsprite.cell
-		if types == 0: # presionamos del espacio
-			# reglas para INICIAR
-			# la celda actual sea un número Y
-			# la celda actual no tenga ninguna conexión anterior
-			if oldCell.number != 0 and len(oldCell.connections) == 0:
-				self.history.append(oldCell)
-				self.cell_draw(oldCell, oldCell.color)
-			else:
-				self.stop = True
-		elif types == 5: # levantamos el espacio
-			# reglas para SOLTAR
-			# la longitud de la historia sea igual al número actual de la celda Y
-			# el número del que se empieza sea igual que el que se acaba Y
-			# el número no sea gris			
-			if len(self.history) > 0 and len(self.history) == oldCell.number and self.history[0].number == oldCell.number and oldCell.number_color != GREY:
-				for cell in self.history: # dibujamos
-					cell.connections = self.history
-					if cell.number_color == GREY:
-						cell.number = 0
-					self.cell_draw(cell, self.history[0].color)
-				self.tcheck -= self.history[0].number + self.history[-1].number
-			else: # si no se cumplen las reglas
-				for cell in self.history: # limpiamos
-					cell.lines = cell.lines[:1]
-					if cell.number_color == GREY:
-						cell.number = 0
-					self.cell_clear(cell)
-			self.history = []
-			self.stop = False
-		elif types == 6: # pulsamos la c
-			if len(oldCell.connections) > 0:
-				self.tcheck += oldCell.connections[0].number + oldCell.connections[-1].number
-				for cell in oldCell.connections:
-					self.cell_clear(cell)
-					cell.connections = []
-					cell.lines = cell.lines[:1]
-		elif not self.stop: # si se presiona mov
-			newCellRectY = (self.cellsprite.rect.y+(mov[1]*CELL_WIDTH))/CELL_WIDTH
-			newCellRectX = (self.cellsprite.rect.x+(mov[0]*CELL_WIDTH))/CELL_WIDTH
-			if newCellRectY < self.theight and newCellRectY >= 0 and newCellRectX >=0 and newCellRectX < self.twidth:
-				newCell = self.table[newCellRectX][newCellRectY]
-				# reglas de parada PRE
-				# la celda donde vamos es un numero Y
-				# el numero de la nueva celda es distinto al numero inicial de la historia O
-				# la longitud de la historia+1 es distinta al numero inicial de la historia O
-				# el color de la nueva celda es disntinto al inicial de la historia
-				# la nueva celda no esta ya en la historia Y
-				# la nueva celda no tiene ninguna conexión anterior Y
-				# la celda donde estamos no tiene ninguna conexión
-				if newCell.number != 0 and ((len(self.history) > 0 and (newCell.color != self.history[0].color or newCell.number != self.history[0].number)) or (len(self.history) > 0 and len(self.history)+1 != self.history[0].number)):
+		if (self.zoom == self.dim):
+			oldCell = self.cellsprite.cell
+			if types == 0: # presionamos del espacio
+				# reglas para INICIAR
+				# la celda actual sea un número Y
+				# la celda actual no tenga ninguna conexión anterior
+				if oldCell.number != 0 and len(oldCell.connections) == 0:
+					self.history.append(oldCell)
+					self.cell_draw(oldCell, oldCell.color)
+				else:
 					self.stop = True
-				elif not self.stop and space and not newCell in self.history and len(newCell.connections) == 0 and len(oldCell.connections) == 0: # dibujo
-					if types == 1: # abajo
-						oldCell.lines.append(oldCell.rect.midbottom)
+			elif types == 5: # levantamos el espacio
+				# reglas para SOLTAR
+				# la longitud de la historia sea igual al número actual de la celda Y
+				# el número del que se empieza sea igual que el que se acaba Y
+				# el número no sea gris			
+				if len(self.history) > 0 and len(self.history) == oldCell.number and self.history[0].number == oldCell.number and oldCell.number_color != GREY:
+					for cell in self.history: # dibujamos
+						cell.connections = self.history
+						if cell.number_color == GREY:
+							cell.number = 0
+						self.cell_draw(cell, self.history[0].color)
+					self.tcheck -= self.history[0].number + self.history[-1].number
+				else: # si no se cumplen las reglas
+					for cell in self.history: # limpiamos
+						cell.lines = cell.lines[:1]
+						if cell.number_color == GREY:
+							cell.number = 0
+						self.cell_clear(cell)
+				self.history = []
+				self.stop = False
+			elif types == 6: # pulsamos la c
+				if len(oldCell.connections) > 0:
+					self.tcheck += oldCell.connections[0].number + oldCell.connections[-1].number
+					for cell in oldCell.connections:
+						self.cell_clear(cell)
+						cell.connections = []
+						cell.lines = cell.lines[:1]
+			elif not self.stop: # si se presiona mov
+				newCellRectY = (self.cellsprite.rect.y+(mov[1]*CELL_WIDTH))/CELL_WIDTH
+				newCellRectX = (self.cellsprite.rect.x+(mov[0]*CELL_WIDTH))/CELL_WIDTH
+				if newCellRectY < self.theight and newCellRectY >= 0 and newCellRectX >=0 and newCellRectX < self.twidth:
+					newCell = self.table[newCellRectX][newCellRectY]
+					# reglas de parada PRE
+					# la celda donde vamos es un numero Y
+					# el numero de la nueva celda es distinto al numero inicial de la historia O
+					# la longitud de la historia+1 es distinta al numero inicial de la historia O
+					# el color de la nueva celda es disntinto al inicial de la historia
+					# la nueva celda no esta ya en la historia Y
+					# la nueva celda no tiene ninguna conexión anterior Y
+					# la celda donde estamos no tiene ninguna conexión
+					if (newCell.number != 0 and ((len(self.history) > 0 and (newCell.color != self.history[0].color or newCell.number != self.history[0].number)) or (len(self.history) > 0 and len(self.history)+1 != self.history[0].number))) or (space and (newCell in self.history or (len(newCell.connections) != 0 and len(oldCell.connections) != 0))):
+						self.stop = True
+					elif not self.stop and space:
+						if types == 1: # abajo
+							oldCell.lines.append(oldCell.rect.midbottom)
+							self.cell_move(newCell)
+							newCell.lines.append(newCell.rect.midtop)
+						elif types == 2: # arriba
+							oldCell.lines.append(oldCell.rect.midtop)
+							self.cell_move(newCell)
+							newCell.lines.append(newCell.rect.midbottom)
+						elif types == 3: # izquierda
+							oldCell.lines.append(oldCell.rect.midleft)
+							self.cell_move(newCell)
+							newCell.lines.append(newCell.rect.midright)
+						elif types == 4: # derecha
+							oldCell.lines.append(oldCell.rect.midright)
+							self.cell_move(newCell)
+							newCell.lines.append(newCell.rect.midleft)
+						newCell.lines.append(self.cellsprite.cell.rect.center)
+						if newCell.number != 0:
+							self.cell_draw(newCell, newCell.color)
+						else:
+							newCell.background_color = WHITE
+							newCell.number_color = GREY
+							newCell.number = len(self.history)+1
+						self.history.append(newCell)
+					elif not self.stop and not space: # movimiento
 						self.cell_move(newCell)
-						newCell.lines.append(newCell.rect.midtop)
-					elif types == 2: # arriba
-						oldCell.lines.append(oldCell.rect.midtop)
-						self.cell_move(newCell)
-						newCell.lines.append(newCell.rect.midbottom)
-					elif types == 3: # izquierda
-						oldCell.lines.append(oldCell.rect.midleft)
-						self.cell_move(newCell)
-						newCell.lines.append(newCell.rect.midright)
-					elif types == 4: # derecha
-						oldCell.lines.append(oldCell.rect.midright)
-						self.cell_move(newCell)
-						newCell.lines.append(newCell.rect.midleft)
-					newCell.lines.append(self.cellsprite.cell.rect.center)
-					if newCell.number != 0:
-						self.cell_draw(newCell, newCell.color)
-					else:
-						newCell.background_color = WHITE
-						newCell.number_color = GREY
-						newCell.number = len(self.history)+1
-					self.history.append(newCell)
-				elif not self.stop and not space: # movimiento
-					self.cell_move(newCell)
-			self.stop = False
-		# reglas de parada POST
-		# Tenemos presionado Y
-		# la longitud de la historia es mayor de 0 Y la celda donde estamos tiene el mismo número que la primera celda de la historia
-		oldCell = self.cellsprite.cell
-		if space and ((len(self.history) > 0 and len(self.history) == self.history[0].number)):
-			self.stop = True
+				self.stop = False
+			# reglas de parada POST
+			# Tenemos presionado Y
+			# la longitud de la historia es mayor de 0 Y la celda donde estamos tiene el mismo número que la primera celda de la historia
+			oldCell = self.cellsprite.cell
+			if space and ((len(self.history) > 0 and len(self.history) == self.history[0].number)):
+				self.stop = True
 
 def init_pygame():
 	""" Función inicializar los modulos de pygame necesarios """
@@ -403,13 +401,11 @@ def init_puzzle(fname):
 		print "File not found"
 		sys,exit()
 	(ncolumns, nrows) = string.split(string.strip(f.readline()), ' ')
-
 	color_dict = ast.literal_eval(f.readline())
-
-	table = [[Cell(x*CELL_WIDTH, y*CELL_WIDTH, 0) for y in range(0, int(nrows))] for x in range(0, int(ncolumns))]
-	for x in range(0, int(nrows)):
+	table = [[Cell(x*CELL_WIDTH, y*CELL_WIDTH, 0) for y in xrange(0, int(nrows))] for x in xrange(0, int(ncolumns))]
+	for x in xrange(0, int(nrows)):
 		num = string.split(f.readline())
-		for y in range(0, int(ncolumns)):
+		for y in xrange(0, int(ncolumns)):
 			tn = string.split(num.pop(0), ',')
 			table[y][x].number = int(tn[0])
 			if len(tn) == 2:
