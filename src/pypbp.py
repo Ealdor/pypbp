@@ -198,6 +198,9 @@ class Table():
 
 		"""
 
+		amm = 1
+		if pygame.key.get_pressed()[pygame.locals.K_x] != 0:
+			amm = 5
 		if event.type == pygame.locals.KEYDOWN:
 			if pygame.key.get_pressed()[pygame.locals.K_SPACE] != 0: # presionamos el espacio
 				if event.key == pygame.locals.K_DOWN:
@@ -212,26 +215,14 @@ class Table():
 					pass
 				elif event.key == pygame.locals.K_SPACE and pygame.key.get_pressed()[pygame.locals.K_LEFT] == 0 and pygame.key.get_pressed()[pygame.locals.K_DOWN] == 0 and pygame.key.get_pressed()[pygame.locals.K_UP] == 0 and pygame.key.get_pressed()[pygame.locals.K_RIGHT] == 0:
 					self.process(0, True)
-			elif event.key == pygame.locals.K_DOWN: # abajo
-				if pygame.key.get_pressed()[pygame.locals.K_x] != 0: # abajoplus
-					self.process(1, False, (0, 5))
-				else:
-					self.process(1, False, (0, 1))
-			elif event.key == pygame.locals.K_UP: # arriba
-				if pygame.key.get_pressed()[pygame.locals.K_x] != 0: # arribaplus
-					self.process(2, False, (0, -5))
-				else:
-					self.process(2, False, (0, -1))
-			elif event.key == pygame.locals.K_LEFT: # izquierda
-				if pygame.key.get_pressed()[pygame.locals.K_x] != 0: # izquierdaplus
-					self.process(3, False, (-5, 0))
-				else:
-					self.process(3, False, (-1, 0))
-			elif event.key == pygame.locals.K_RIGHT: # derecha
-				if pygame.key.get_pressed()[pygame.locals.K_x] != 0: # derechaplus
-					self.process(4, False, (5, 0))
-				else:
-					self.process(4, False, (1, 0))
+			elif event.key == pygame.locals.K_DOWN:
+				self.process(1, False, (0, amm))
+			elif event.key == pygame.locals.K_UP:
+				self.process(2, False, (0, -amm))
+			elif event.key == pygame.locals.K_LEFT:
+				self.process(3, False, (-amm, 0))
+			elif event.key == pygame.locals.K_RIGHT:
+				self.process(4, False, (amm, 0))
 			elif event.key == pygame.locals.K_c: # c (borrar)
 				self.process(6, False)
 			elif event.unicode == '-': # zoom out
@@ -252,6 +243,7 @@ class Table():
 
 		Attributes:
 			cell(Cell): celda a dibujar
+			color(Color): el color del numero de la celda
 
 		"""
 
@@ -286,6 +278,7 @@ class Table():
 		Attributes:
 			types(int): tipo de tecla
 			space(bool): espacio presionado o no
+			mov(set): cuanto nos movemos
 
 		"""
 
@@ -293,8 +286,6 @@ class Table():
 			oldCell = self.cellsprite.cell
 			if types == 0: # presionamos del espacio
 				# reglas para INICIAR
-				# la celda actual sea un número Y
-				# la celda actual no tenga ninguna conexión anterior
 				if oldCell.number != 0 and len(oldCell.connections) == 0:
 					self.history.append(oldCell)
 					self.cell_draw(oldCell, oldCell.color)
@@ -302,9 +293,6 @@ class Table():
 					self.stop = True
 			elif types == 5: # levantamos el espacio
 				# reglas para SOLTAR
-				# la longitud de la historia sea igual al número actual de la celda Y
-				# el número del que se empieza sea igual que el que se acaba Y
-				# el número no sea gris			
 				if len(self.history) > 0 and len(self.history) == oldCell.number and self.history[0].number == oldCell.number and oldCell.number_color != GREY:
 					for cell in self.history: # dibujamos
 						cell.connections = self.history
@@ -333,13 +321,6 @@ class Table():
 				if newCellRectY < self.theight and newCellRectY >= 0 and newCellRectX >=0 and newCellRectX < self.twidth:
 					newCell = self.table[newCellRectX][newCellRectY]
 					# reglas de parada PRE
-					# la celda donde vamos es un numero Y
-					# el numero de la nueva celda es distinto al numero inicial de la historia O
-					# la longitud de la historia+1 es distinta al numero inicial de la historia O
-					# el color de la nueva celda es disntinto al inicial de la historia
-					# la nueva celda no esta ya en la historia Y
-					# la nueva celda no tiene ninguna conexión anterior Y
-					# la celda donde estamos no tiene ninguna conexión
 					# if newCell.number != 0 and ((len(self.history) > 0 and (newCell.color != self.history[0].color or newCell.number != self.history[0].number)) or (len(self.history) > 0 and len(self.history)+1 != self.history[0].number)):
 					# if not self.stop and space and not newCell in self.history and len(newCell.connections) == 0 and len(oldCell.connections) == 0: # dibujo
 					if (newCell.number != 0 and ((len(self.history) > 0 and (newCell.color != self.history[0].color or newCell.number != self.history[0].number)) or (len(self.history) > 0 and len(self.history)+1 != self.history[0].number))) or (space and (newCell in self.history or len(newCell.connections) != 0 or len(oldCell.connections) != 0)):
@@ -381,12 +362,9 @@ class Table():
 					elif not self.stop and not space: # movimiento
 						self.cell_move(newCell)
 				self.stop = False
-			# reglas de parada POST
-			# Tenemos presionado Y
-			# la longitud de la historia es mayor de 0 Y la celda donde estamos tiene el mismo número que la primera celda de la historia
 			oldCell = self.cellsprite.cell
-			if space and (len(self.history) > 0 and len(self.history) == self.history[0].number):
-				print "a"
+			# reglas de parada POST
+			if space and (len(self.history) > 0 and len(self.history) == self.history[0].number): 
 				self.stop = True
 
 def init_pygame():
