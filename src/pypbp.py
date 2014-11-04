@@ -340,9 +340,13 @@ class Table():
 					# la nueva celda no esta ya en la historia Y
 					# la nueva celda no tiene ninguna conexión anterior Y
 					# la celda donde estamos no tiene ninguna conexión
-					if (newCell.number != 0 and ((len(self.history) > 0 and (newCell.color != self.history[0].color or newCell.number != self.history[0].number)) or (len(self.history) > 0 and len(self.history)+1 != self.history[0].number))) or (space and (newCell in self.history or (len(newCell.connections) != 0 and len(oldCell.connections) != 0))):
+					# if newCell.number != 0 and ((len(self.history) > 0 and (newCell.color != self.history[0].color or newCell.number != self.history[0].number)) or (len(self.history) > 0 and len(self.history)+1 != self.history[0].number)):
+					# if not self.stop and space and not newCell in self.history and len(newCell.connections) == 0 and len(oldCell.connections) == 0: # dibujo
+					if (newCell.number != 0 and ((len(self.history) > 0 and (newCell.color != self.history[0].color or newCell.number != self.history[0].number)) or (len(self.history) > 0 and len(self.history)+1 != self.history[0].number))) or (space and (newCell in self.history or len(newCell.connections) != 0 or len(oldCell.connections) != 0)):
 						self.stop = True
-					elif not self.stop and space:
+					if newCell.number_color == GREY and newCell == self.history[-2]: # ir hacia detras
+						self.stop = False
+					if not self.stop and space:
 						if types == 1: # abajo
 							oldCell.lines.append(oldCell.rect.midbottom)
 							self.cell_move(newCell)
@@ -361,7 +365,14 @@ class Table():
 							newCell.lines.append(newCell.rect.midleft)
 						newCell.lines.append(self.cellsprite.cell.rect.center)
 						if newCell.number != 0:
-							self.cell_draw(newCell, newCell.color)
+							if newCell.number_color == GREY: # ir hacia detras
+								self.cell_clear(oldCell)
+								oldCell.number = 0
+								oldCell.number_color = BLACK
+								self.history = self.history[0:-2]
+								newCell.lines = newCell.lines[0:-3]
+							else:
+								self.cell_draw(newCell, newCell.color)
 						else:
 							newCell.background_color = WHITE
 							newCell.number_color = GREY
@@ -374,7 +385,8 @@ class Table():
 			# Tenemos presionado Y
 			# la longitud de la historia es mayor de 0 Y la celda donde estamos tiene el mismo número que la primera celda de la historia
 			oldCell = self.cellsprite.cell
-			if space and ((len(self.history) > 0 and len(self.history) == self.history[0].number)):
+			if space and (len(self.history) > 0 and len(self.history) == self.history[0].number):
+				print "a"
 				self.stop = True
 
 def init_pygame():
