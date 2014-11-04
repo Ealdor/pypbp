@@ -7,16 +7,17 @@
 ##    it under the terms of the GNU General Public License as published by
 ##    the Free Software Foundation, either version 3 of the License, or
 ##    (at your option) any later version.
-
+##
 ##    This program is distributed in the hope that it will be useful,
 ##    but WITHOUT ANY WARRANTY; without even the implied warranty of
 ##    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ##    GNU General Public License for more details.
-
+##
 ##    You should have received a copy of the GNU General Public License
 ##    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
+import ast
 import sys
 import string
 import pygame
@@ -59,14 +60,15 @@ class Cell():
 
     """
 
-	def __init__(self, posx, posy, number):
+	def __init__(self, posx, posy, number, color=BLACK):
 		self.posx = posx
 		self.posy = posy
 		self.number = number
+		self.color = color
 		self.background_color = WHITE
 		self.border_color = GREY
 		self.border_color_sprite = RED
-		self.number_color = BLACK
+		self.number_color = color
 		self.lines_color = GREY
 		self.rect = pygame.Rect(self.posx, self.posy, CELL_WIDTH, CELL_WIDTH)
 		self.connections = []
@@ -245,7 +247,7 @@ class Table():
 			self.process(5, False)
 			return True
 
-	def cell_draw(self, cell):
+	def cell_draw(self, cell, color):
 		""" Función para poner colores de dibujo
 
 		Attributes:
@@ -253,7 +255,7 @@ class Table():
 
 		"""
 
-		cell.background_color = BLACK
+		cell.background_color = color
 		cell.number_color = WHITE
 
 	def cell_clear(self, cell):
@@ -265,7 +267,7 @@ class Table():
 		"""
 
 		cell.background_color = WHITE
-		cell.number_color = BLACK
+		cell.number_color = cell.color
 
 	def cell_move(self, cell):
 		""" Función para mover la celda
@@ -297,7 +299,7 @@ class Table():
 			# la celda actual no tenga ninguna conexión anterior
 			if oldCell.number != 0 and len(oldCell.connections) == 0:
 				self.history.append(oldCell)
-				self.cell_draw(oldCell)
+				self.cell_draw(oldCell, oldCell.color)
 			else:
 				self.stop = True
 		elif types == 5: # levantamos el espacio
@@ -310,7 +312,7 @@ class Table():
 					cell.connections = self.history
 					if cell.number_color == GREY:
 						cell.number = 0
-					self.cell_draw(cell)
+					self.cell_draw(cell, self.history[0].color)
 				self.tcheck -= self.history[0].number + self.history[-1].number
 			else: # si no se cumplen las reglas
 				for cell in self.history: # limpiamos
@@ -335,11 +337,12 @@ class Table():
 				# reglas de parada PRE
 				# la celda donde vamos es un numero Y
 				# el numero de la nueva celda es distinto al numero inicial de la historia O
-				# la longitud de la historia+1 es disntinta al numero inicial de la historia
+				# la longitud de la historia+1 es distinta al numero inicial de la historia O
+				# el color de la nueva celda es disntinto al inicial de la historia
 				# la nueva celda no esta ya en la historia Y
 				# la nueva celda no tiene ninguna conexión anterior Y
 				# la celda donde estamos no tiene ninguna conexión
-				if newCell.number != 0 and ((len(self.history) > 0 and newCell.number != self.history[0].number) or (len(self.history) > 0 and len(self.history)+1 != self.history[0].number)):
+				if newCell.number != 0 and ((len(self.history) > 0 and (newCell.color != self.history[0].color or newCell.number != self.history[0].number)) or (len(self.history) > 0 and len(self.history)+1 != self.history[0].number)):
 					self.stop = True
 				elif not self.stop and space and not newCell in self.history and len(newCell.connections) == 0 and len(oldCell.connections) == 0: # dibujo
 					if types == 1: # abajo
@@ -360,7 +363,7 @@ class Table():
 						newCell.lines.append(newCell.rect.midleft)
 					newCell.lines.append(self.cellsprite.cell.rect.center)
 					if newCell.number != 0:
-						self.cell_draw(newCell)
+						self.cell_draw(newCell, newCell.color)
 					else:
 						newCell.background_color = WHITE
 						newCell.number_color = GREY
@@ -400,11 +403,18 @@ def init_puzzle(fname):
 		print "File not found"
 		sys,exit()
 	(ncolumns, nrows) = string.split(string.strip(f.readline()), ' ')
+
+	color_dict = ast.literal_eval(f.readline())
+
 	table = [[Cell(x*CELL_WIDTH, y*CELL_WIDTH, 0) for y in range(0, int(nrows))] for x in range(0, int(ncolumns))]
 	for x in range(0, int(nrows)):
 		num = string.split(f.readline())
 		for y in range(0, int(ncolumns)):
-			table[y][x].number = int(num.pop(0))
+			tn = string.split(num.pop(0), ',')
+			table[y][x].number = int(tn[0])
+			if len(tn) == 2:
+				table[y][x].color = color_dict.get(tn[1])
+				table[y][x].number_color = color_dict.get(tn[1])
 	return ncolumns, nrows, table
 
 if __name__ == '__main__':
