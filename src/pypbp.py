@@ -17,7 +17,6 @@
 ##    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
-import os
 import sys
 import string
 import pygame
@@ -157,8 +156,6 @@ class Table():
 			aux[0] = (((self.cellsprite.cell.posx/CELL_WIDTH)-CAMERAX)*CELL_WIDTH)+(2*CELL_WIDTH)
 		if self.cellsprite.cell.posy/CELL_WIDTH >= CAMERAY-1:
 			aux[1] = (((self.cellsprite.cell.posy/CELL_WIDTH)-CAMERAY)*CELL_WIDTH)+(2*CELL_WIDTH)
-		self.tsurface.fill(FONDO, aux)
-		screen.fill(FONDO)
 		(emp, ter, emp2, ter2) = (0, self.theight, 0, self.twidth) # solo recorremos la parte de la tabla que se ve (MOAR FPS)
 		if self.zoom == self.dim:
 			(emp, ter, emp2, ter2) = (0, 28, 0, 49)
@@ -168,18 +165,18 @@ class Table():
 			if self.cellsprite.cell.posy/CELL_WIDTH >= CAMERAY-1:
 				emp = aux[1]/CELL_WIDTH
 				ter = self.cellsprite.cell.posy/CELL_WIDTH + CELL_WIDTH - 5
+		self.tsurface.fill(FONDO, aux)
+		screen.fill(FONDO)
 		for x in self.table[emp2:ter2]:
 			for cell in x[emp:ter]:
-				if (cell.posx >= aux[0] and cell.posx < aux[0]+SCREEN_WIDTH-(3*CELL_WIDTH)) or (self.zoom != self.dim):
-					if (cell.posy >= aux[1] and cell.posy < aux[1]+SCREEN_HEIGHT-(2*CELL_WIDTH)) or (self.zoom != self.dim):
-						if (cell.number == 0 and len(cell.lines) > 1 and cell.background_color == WHITE) or (cell.number != 0 and len(cell.lines) > 1 and cell.background_color == WHITE and cell.number_color != GREY):
-							cell.lines = cell.lines[0:1]
-						pygame.draw.rect(self.tsurface, cell.background_color, cell.rect, 0) # dibujamos el rectangulo de la celda
-						pygame.draw.rect(self.tsurface, cell.border_color, cell.rect, cell.bsize) # dibujamos el borde de la celda
-						if len(cell.lines) > 1: # dibujamos las lineas de conexión de la celda si hay
-							pygame.draw.lines(self.tsurface, cell.lines_color, False, cell.lines, cell.lsize)
-						if cell.number != 0: # dibujamos el número de la celda si no es cero
-							self.tsurface.blit(self.nfont.render(str(cell.number), True, cell.number_color, cell.background_color), (cell.posx+(CELL_WIDTH - self.nfont.size(str(cell.number))[0])/2, cell.posy+(CELL_WIDTH - self.nfont.size(str(cell.number))[1])/2))
+				if (cell.number == 0 and len(cell.lines) > 1 and cell.background_color == WHITE) or (cell.number != 0 and len(cell.lines) > 1 and cell.background_color == WHITE and cell.number_color != GREY):
+					cell.lines = cell.lines[0:1]
+				pygame.draw.rect(self.tsurface, cell.background_color, cell.rect, 0) # dibujamos el rectangulo de la celda
+				pygame.draw.rect(self.tsurface, cell.border_color, cell.rect, cell.bsize) # dibujamos el borde de la celda
+				if len(cell.lines) > 1: # dibujamos las lineas de conexión de la celda si hay
+					pygame.draw.lines(self.tsurface, cell.lines_color, False, cell.lines, cell.lsize)
+				if cell.number != 0: # dibujamos el número de la celda si no es cero
+					self.tsurface.blit(self.nfont.render(str(cell.number), True, cell.number_color, cell.background_color), (cell.posx+(CELL_WIDTH - self.nfont.size(str(cell.number))[0])/2, cell.posy+(CELL_WIDTH - self.nfont.size(str(cell.number))[1])/2))
 		self.sprites_list.draw(self.tsurface) # dibujamos el cellsprite
 		if self.tcheck == 0: screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 5))
 		else: screen.blit(self.nfont.render("{0} LEFT".format(self.tcheck), True, RED, FONDO), (CELL_WIDTH, 5))
@@ -403,11 +400,12 @@ def init_puzzle(fname):
 		print "File not found"
 		sys,exit()
 	(ncolumns, nrows) = string.split(string.strip(f.readline()), ' ')
-	table = [[Cell(x*CELL_WIDTH, y*CELL_WIDTH, 0) for y in range(0, int(nrows))] for x in range(0, int(ncolumns))]
-	for x in range(0, int(nrows)):
-		num = string.split(f.readline())
-		for y in range(0, int(ncolumns)):
-			table[y][x].number = int(num.pop(0))
+	(ncolumns, nrows) = (90, 90)
+	table = [[Cell(x*CELL_WIDTH, y*CELL_WIDTH, 2) for y in range(0, int(nrows))] for x in range(0, int(ncolumns))]
+	# for x in range(0, int(nrows)):
+	# 	num = string.split(f.readline())
+	# 	for y in range(0, int(ncolumns)):
+	# 		table[y][x].number = int(num.pop(0))
 	return ncolumns, nrows, table
 
 if __name__ == '__main__':
@@ -418,7 +416,7 @@ if __name__ == '__main__':
 		sys.exit()
 	init_pygame()
 	screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-	pygame.display.set_caption('Pypbp 0.0.5')
+	pygame.display.set_caption('Pypbp 0.0.6')
 	#clock = pygame.time.Clock()
 	table = Table(int(c), int(r), 1, 1, t)
 	loop = True
