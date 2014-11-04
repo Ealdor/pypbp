@@ -15,11 +15,12 @@ There is only one unique way to link all the squares in a properly-constructed p
 
 ###Considerations:
 Puzzles are inside puzzle directory. To launch the game write on a terminal: 
-> python pypbp.py filename
+> python pypbp.py puzzle_filename
 
-See the file *test_11x11.txt* for an example of a puzzle. The program does not check if the puzzle is valid or not. Syntax: 
-* First line: number of columns, number of rows
-* Line: number of the cell
+See the file *test_11x11.txt* for an example of a puzzle (or the _color one). The program does not check if the puzzle is valid or not. Syntax: 
+* First line: number of columns, number of rows.
+* Second line: dictionary of colors. If its black and white write an empty one *{}*.
+* Line: number for the cell.
 
 
 Puzzles can be from 1x1 to 800x800 (or so).
@@ -29,5 +30,4 @@ Game resolution is set to: 1024x600
 ealdorj@gmail.com
 
 ###TODO:
-* Use colors.
 * Make the puzzle generator from an image.
