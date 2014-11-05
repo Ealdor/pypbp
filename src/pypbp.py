@@ -403,9 +403,7 @@ def init_puzzle(fname, ncolumns, nrows):
 					table[y][x].number_color = color_dict.get(tn[1])
 	elif typef == 'json': # JSON
 		data = json.load(f)
-		print len(data)
 		for row in range(len(data)):
-			print len(data[row])
 			for col in range(len(data[row])):
 				value = data[row][col]["number"]
 				c = data[row][col]["color"]
