@@ -16,6 +16,7 @@ There is only one unique way to link all the squares in a properly-constructed p
 ###Considerations:
 Puzzles are inside puzzle directory. To launch the game write on a terminal: 
 > python pypbp.py filename [PUZZLE_WIDTH] [PUZZLE_HEIGHT]
+
 > python pypbp.py generator/puzzles/test_11x11.csv 11 11
 
 * Inside the generator directory the is a generator scrypt (and a solver one) to generate new puzzles from image bitmap (CSV or JSON). See the examples.
@@ -23,12 +24,13 @@ Puzzles are inside puzzle directory. To launch the game write on a terminal:
 * Game resolution is set to: 1024x600
 
 ###Puzzle Generator and Solver:
-The code and some examples were taken from: https://code.cs.nott.ac.uk/p/gp13-jaa/. So all the credit for them.
+The code and some examples were taken from: https://code.cs.nott.ac.uk/p/gp13-jaa/. So all credits for them.
 To use the generator:
 > python generator.py [PUZZLE_WIDTH] [PUZZLE_HEIGHT] [PUZZLE_NAME] [PUZZLE_DIFFICULTY (4-10)]
+
 > python generator.py 10 10 gentestconv.json 5
 
-This will generate a temp.csv or temp.json file with the generated puzzle.
+This will generate a *temp.csv* or *temp.json* file with the generated puzzle.
 
 ###Contact:
 ealdorj@gmail.com
