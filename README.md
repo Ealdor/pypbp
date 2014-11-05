@@ -15,19 +15,20 @@ There is only one unique way to link all the squares in a properly-constructed p
 
 ###Considerations:
 Puzzles are inside puzzle directory. To launch the game write on a terminal: 
-> python pypbp.py puzzle_filename
+> python pypbp.py filename [PUZZLE_WIDTH] [PUZZLE_HEIGHT]
+> python pypbp.py generator/puzzles/test_11x11.csv 11 11
 
-See the file *test_11x11.txt* for an example of a puzzle (or the _color one). The program does not check if the puzzle is valid or not. Syntax: 
-* First line: number of columns, number of rows.
-* Second line: dictionary of colors. If its black and white write an empty one *{}*.
-* Line: number for the cell.
+* Inside the generator directory the is a generator scrypt (and a solver one) to generate new puzzles from image bitmap (CSV or JSON). See the examples.
+* Puzzles can be from 1x1 to 800x800 (or so).
+* Game resolution is set to: 1024x600
 
+###Puzzle Generator and Solver:
+The code and some examples were taken from: https://code.cs.nott.ac.uk/p/gp13-jaa/. So all the credit for them.
+To use the generator:
+> python generator.py [PUZZLE_WIDTH] [PUZZLE_HEIGHT] [PUZZLE_NAME] [PUZZLE_DIFFICULTY (4-10)]
+> python generator.py 10 10 gentestconv.json 5
 
-Puzzles can be from 1x1 to 800x800 (or so).
-Game resolution is set to: 1024x600
+This will generate a temp.csv or temp.json file with the generated puzzle.
 
 ###Contact:
 ealdorj@gmail.com
-
-###TODO:
-* Make the puzzle generator from an image.
