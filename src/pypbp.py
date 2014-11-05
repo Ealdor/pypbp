@@ -17,7 +17,7 @@
 ##    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
-import ast
+import json
 import sys
 import string
 import pygame
@@ -372,7 +372,7 @@ def init_pygame():
 
 	pygame.font.init()
 
-def init_puzzle(fname):
+def init_puzzle(fname, ncolumns, nrows):
 	""" Inicializa el tablero desde un archivo pasado
 
 	Args:
@@ -384,34 +384,44 @@ def init_puzzle(fname):
 		table(list): tabla del puzzle
 
 	"""
-
+	
 	try:
 		f = open(fname, 'r')
 	except IOError:
 		print "File not found"
 		sys,exit()
-	(ncolumns, nrows) = string.split(string.strip(f.readline()), ' ')
-	color_dict = ast.literal_eval(f.readline())
+	typef = fname.split('.')[1]
 	table = [[Cell(x*CELL_WIDTH, y*CELL_WIDTH, 0) for y in xrange(0, int(nrows))] for x in xrange(0, int(ncolumns))]
-	for x in xrange(0, int(nrows)):
-		num = string.split(f.readline())
-		for y in xrange(0, int(ncolumns)):
-			tn = string.split(num.pop(0), ',')
-			table[y][x].number = int(tn[0])
-			if len(tn) == 2:
-				table[y][x].color = color_dict.get(tn[1])
-				table[y][x].number_color = color_dict.get(tn[1])
+	if typef == 'csv': # CSV
+		for x in xrange(0, int(nrows)):
+			num = string.split(string.strip(f.readline()), ',')
+			for y in xrange(0, int(ncolumns)):
+				tn = string.split(num.pop(0), ',')
+				table[y][x].number = int(tn[0])
+				if len(tn) == 2:
+					table[y][x].color = color_dict.get(tn[1])
+					table[y][x].number_color = color_dict.get(tn[1])
+	elif typef == 'json': # JSON
+		data = json.load(f)
+		print len(data)
+		for row in range(len(data)):
+			print len(data[row])
+			for col in range(len(data[row])):
+				value = data[row][col]["number"]
+				c = data[row][col]["color"]
+				colour = [c["r"], c["g"], c["b"]]
+				table[col][row] = Cell(col*CELL_WIDTH, row*CELL_WIDTH, value, colour)
 	return ncolumns, nrows, table
 
 if __name__ == '__main__':
-	if len(sys.argv) == 2:
-		c, r, t = init_puzzle(sys.argv[1])
+	if len(sys.argv) == 4:
+		c, r, t = init_puzzle(sys.argv[1], sys.argv[2], sys.argv[3])
 	else:
-		print "Use: pyPbP.py puzzle_file"
+		print "Use: pyPbP.py [puzzle_file] [PUZZLE_WIDTH] [PUZZLE_HEIGHT]"
 		sys.exit()
 	init_pygame()
 	screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-	pygame.display.set_caption('Pypbp 0.0.6')
+	pygame.display.set_caption('Pypbp 0.1')
 	#clock = pygame.time.Clock()
 	table = Table(int(c), int(r), 1, 1, t)
 	loop = True
