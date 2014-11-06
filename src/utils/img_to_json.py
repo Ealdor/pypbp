@@ -24,5 +24,29 @@
 	Command line interface:
 		$ python img_to_json.py [IMAGEN_NAME.json] [WIDTH] [HEIGHT] """
 
+import sys
+import json
 import pygame
-import pygame.locals
+
+def generate_json(fname, ncol, nrow):
+	f = open(fname.split('.')[0]+".json", 'w')
+	simage = pygame.image.load(fname)
+	rows = []
+	for x in xrange(0, nrow):
+		cols = []
+		for y in xrange(0, ncol):
+			pixcolor = simage.get_at((y,x))
+			if (pixcolor.r,pixcolor.g,pixcolor.b) == (255, 255, 255): #blanco
+				cols.append({'color':{'r':255,'b':255,'g':255},'number':0})
+			else:
+				cols.append({'color':{'r':pixcolor.r,'b':pixcolor.b,'g':pixcolor.g},'number':1})
+		rows.append(cols)
+	json.dump(rows, f)
+	f.close()
+
+if __name__ == '__main__':
+	if len(sys.argv) == 4:
+		generate_json(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
+	else:
+		print "Use: python img_to_json.py [IMAGEN_NAME.type] [WIDTH] [HEIGHT]"
+		sys.exit()

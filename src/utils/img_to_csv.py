@@ -28,12 +28,12 @@ import sys
 import pygame
 
 def generate_csv(fname, ncol, nrow):
-	f = open(fname.split('.')[0]+"_"+str(ncol)+"x"+str(nrow)+".csv", 'w')
+	f = open(fname.split('.')[0]+".csv", 'w')
 	simage = pygame.image.load(fname)
 	for x in xrange(0, nrow):
 		for y in xrange(0, ncol):
 			pixcolor = simage.get_at((y,x))
-			if (pixcolor.r,pixcolor.g,pixcolor.b) == (0, 0, 0): 
+			if (pixcolor.r,pixcolor.g,pixcolor.b) == (0, 0, 0): #negro
 				f.write('1')
 			else: 
 				f.write('0')
