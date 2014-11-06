@@ -396,19 +396,17 @@ def init_puzzle(fname, ncolumns, nrows):
 		for x in xrange(0, int(nrows)):
 			num = string.split(string.strip(f.readline()), ',')
 			for y in xrange(0, int(ncolumns)):
-				tn = string.split(num.pop(0), ',')
-				table[y][x].number = int(tn[0])
-				if len(tn) == 2:
-					table[y][x].color = color_dict.get(tn[1])
-					table[y][x].number_color = color_dict.get(tn[1])
+				tn = int(string.split(num.pop(0), ',')[0])
+				table[y][x].number = tn
 	elif typef == 'json': # JSON
 		data = json.load(f)
-		for row in range(len(data)):
-			for col in range(len(data[row])):
+		for row in xrange(len(data)):
+			for col in xrange(len(data[row])):
 				value = data[row][col]["number"]
 				c = data[row][col]["color"]
 				colour = [c["r"], c["g"], c["b"]]
 				table[col][row] = Cell(col*CELL_WIDTH, row*CELL_WIDTH, value, colour)
+	f.close()
 	return ncolumns, nrows, table
 
 if __name__ == '__main__':
