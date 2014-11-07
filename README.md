@@ -14,23 +14,32 @@ There is only one unique way to link all the squares in a properly-constructed p
 * Use *-* to zoom out and *+* to restore to original zoom. You cannot move or paint if there is zoom.
 
 ###Considerations:
-Puzzles are inside puzzle directory. To launch the game write on a terminal: 
+Puzzles are inside puzzle directory. Puzzle can be CSV (b&w) or JSON (color). To launch the game write on a terminal: 
 > python pypbp.py filename [PUZZLE_WIDTH] [PUZZLE_HEIGHT]
 
-> python pypbp.py generator/puzzles/test_11x11.csv 11 11
+> python pypbp.py generated_puzzles/toad_50x50.csv 50 50
+
+> python pypbp.py generated_puzzles/mario_50x46.json 50 46
 
 * Inside the generator directory the is a generator scrypt (and a solver one) to generate new puzzles from image bitmap (CSV or JSON). See the examples.
 * Puzzles can be from 1x1 to 800x800 (or so).
 * Game resolution is set to: 1024x600
 
 ###Puzzle Generator and Solver:
-The code and some examples were taken from: https://code.cs.nott.ac.uk/p/gp13-jaa/. So all credits for them.
-To use the generator:
+The code and some examples were taken from: https://code.cs.nott.ac.uk/p/gp13-jaa/. So all credits for them. Puzzles must be inside *puzzle* directory. To use the generator:
 > python generator.py [PUZZLE_WIDTH] [PUZZLE_HEIGHT] [PUZZLE_NAME] [PUZZLE_DIFFICULTY (4-10)]
 
 > python generator.py 10 10 gentestconv.json 5
 
 This will generate a *temp.csv* or *temp.json* file with the generated puzzle.
+
+###Utils:
+Inside *Utils* directory there are two scripts to generate a puzzle (only 1's) from an image.
+> python img_to_csv.py [IMAGEN_NAME.csv] [WIDTH] [HEIGHT]
+
+> python img_to_json.py [IMAGEN_NAME.json] [WIDTH] [HEIGHT]
+
+This will generate a *csv* or *json* file. After this you can generate a complete puzzle with the Puzzle Generator.
 
 ###Contact:
 ealdorj@gmail.com
