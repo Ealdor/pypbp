@@ -168,6 +168,17 @@ class Table():
 				elif cell.number == 1:
 					self.tcheck += cell.number+1
 
+	def update(self, lista):
+		""" Función que actualiza en la pantalla una celda o lista d celdas """
+
+		for x in lista:
+			pygame.draw.rect(self.tsurface, x.background_color, x.rect, 0)
+			pygame.draw.rect(self.tsurface, x.border_color, x.rect, x.bsize)
+			if len(x.lines) > 1: # dibujamos las lineas de conexión de la celda si hay
+				pygame.draw.lines(self.tsurface, x.lines_color, False, x.lines, x.lsize)
+			if x.number != 0:
+				self.tsurface.blit(self.nfont.render(str(x.number), True, x.number_color, x.background_color), (x.posx+(CELL_WIDTH - self.nfont.size(str(x.number))[0])/2, x.posy+(CELL_WIDTH - self.nfont.size(str(x.number))[1])/2))
+
 	def draw(self):
 		""" Función para dibujar el tablero y todos sus componenetes (cell y cellsprite) """
 
@@ -179,42 +190,20 @@ class Table():
 		screen.fill(FONDO)
 		self.tsurface_aux = self.tsurface.copy() # bliteamos una copia de la anterior
 		screen.blit(self.tsurface_aux, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), (aux[0], aux[1], SCREEN_WIDTH-2*CELL_WIDTH-4, SCREEN_HEIGHT-2*CELL_WIDTH))
-		pygame.draw.rect(self.tsurface, self.old.background_color, self.old.rect, 0) # la anterior
-		pygame.draw.rect(self.tsurface, self.old.border_color, self.old.rect, self.old.bsize) # la anterior
-		if self.old.number != 0: # la anterior
-			self.tsurface.blit(self.nfont.render(str(self.old.number), True, self.old.number_color, self.old.background_color), (self.old.posx+(CELL_WIDTH - self.nfont.size(str(self.old.number))[0])/2, self.old.posy+(CELL_WIDTH - self.nfont.size(str(self.old.number))[1])/2))
-		cell = self.cellsprite.cell # la actual
-		pygame.draw.rect(self.tsurface, cell.background_color, cell.rect, 0) # la actual
-		pygame.draw.rect(self.tsurface, cell.border_color, cell.rect, cell.bsize) # la actual
-		if cell.number != 0: # la actual
-			self.tsurface.blit(self.nfont.render(str(cell.number), True, cell.number_color, cell.background_color), (cell.posx+(CELL_WIDTH - self.nfont.size(str(cell.number))[0])/2, cell.posy+(CELL_WIDTH - self.nfont.size(str(cell.number))[1])/2))				
-		if len(self.cellsprite.cell.connections) > 0:
-			for x in self.cellsprite.cell.connections: # las conexiones
-				pygame.draw.rect(self.tsurface, x.background_color, x.rect, 0) # las conexiones
-				pygame.draw.rect(self.tsurface, x.border_color, x.rect, x.bsize) # las conexiones
-				if x.number != 0: # las conexiones
-					self.tsurface.blit(self.nfont.render(str(x.number), True, x.number_color, x.background_color), (x.posx+(CELL_WIDTH - self.nfont.size(str(x.number))[0])/2, x.posy+(CELL_WIDTH - self.nfont.size(str(x.number))[1])/2))
-		if len(self.oldcon) > 0:
-			for x in self.oldcon: # las conexiones antiguas
-				pygame.draw.rect(self.tsurface, x.background_color, x.rect, 0) # las conexiones antiguas
-				pygame.draw.rect(self.tsurface, x.border_color, x.rect, x.bsize) # las conexiones antiguas
-				if x.number != 0: # las conexiones antiguas
-					self.tsurface.blit(self.nfont.render(str(x.number), True, x.number_color, x.background_color), (x.posx+(CELL_WIDTH - self.nfont.size(str(x.number))[0])/2, x.posy+(CELL_WIDTH - self.nfont.size(str(x.number))[1])/2))				
-			self.oldcon = []
-		if len(self.oldhist) > 0:
-			for x in self.oldhist: # las historias antiguas
-				pygame.draw.rect(self.tsurface, x.background_color, x.rect, 0) # las historias antiguas
-				pygame.draw.rect(self.tsurface, x.border_color, x.rect, x.bsize) # las historias antiguas
-				if x.number != 0: # las conexiones antiguas
-					self.tsurface.blit(self.nfont.render(str(x.number), True, x.number_color, x.background_color), (x.posx+(CELL_WIDTH - self.nfont.size(str(x.number))[0])/2, x.posy+(CELL_WIDTH - self.nfont.size(str(x.number))[1])/2))				
-			self.oldhist = []
+		self.update([self.old]) # ANTERIOR
+		self.update([self.cellsprite.cell]) # ACTUAL
+		self.update(self.cellsprite.cell.connections) # CONEXIONES (levantamos y correcto)
+		self.update(self.oldcon) # CONEXIONES (levantamos y no correcto)
+		if len(self.oldcon) > 0: self.oldcon = []
+		self.update(self.oldhist) # HISTORIA (en proceso)
+		if len(self.oldhist) > 0: self.oldhist = []
 		self.sprites_list.draw(self.tsurface) # dibujamos el cellsprite
 		screen.blit(self.tsurface, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), (aux[0], aux[1], SCREEN_WIDTH-2*CELL_WIDTH-4, SCREEN_HEIGHT-2*CELL_WIDTH))
 		self.old = self.cellsprite.cell # guardamos el anterior
-		if self.zoom != self.dim:
+		if self.zoom != self.dim: # ZOOM
 			screen.fill(FONDO)
 			screen.blit(pygame.transform.scale(self.tsurface, self.zoom), (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), aux)
-		if self.tcheck == 0: screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 5))
+		if self.tcheck == 0: screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 5)) # MARCADOR
 		else:
 			screen.blit(self.nfont.render("Pixel: {0}, {1}".format(self.cellsprite.cell.number, self.cellsprite.cell.color), True, BLACK, FONDO), (CELL_WIDTH, 3))
 			screen.blit(self.nfont.render("{0} LEFT".format(self.tcheck), True, RED, FONDO), (CELL_WIDTH*9, 3))
@@ -449,7 +438,7 @@ if __name__ == '__main__':
 		sys.exit()
 	init_pygame()
 	screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-	pygame.display.set_caption('Pypbp 0.1')
+	pygame.display.set_caption('Pypbp 0.2')
 	#clock = pygame.time.Clock()
 	table = Table(int(c), int(r), 1, 1, t)
 	loop = True
