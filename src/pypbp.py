@@ -128,6 +128,10 @@ class Table():
 		self.tposx = tposx
 		self.tposy = tposy
 		self.tsurface = pygame.Surface([self.twidth*CELL_WIDTH, self.theight*CELL_WIDTH])
+		self.tsurface_aux = None
+		self.old = None
+		self.oldcon = []
+		self.oldhist = []
 		self.dim = self.tsurface.get_size()
 		self.table = table
 		self.cellsprite = CellSprite(self.table[0][0], 3)
@@ -139,6 +143,20 @@ class Table():
 		self.tcheck = 0
 		self.win()
 		self.zoom = self.dim
+		self.first_draw()
+
+	def first_draw(self):
+		self.tsurface.fill(WHITE)
+		for x in xrange(0, self.twidth):
+			for y in xrange(0, self.theight):
+				cell = self.table[x][y]
+				if cell.background_color != WHITE: # dibujamos el fondo de la celda si es distinto de blanco
+					pygame.draw.rect(self.tsurface, cell.background_color, cell.rect, 0)
+				pygame.draw.rect(self.tsurface, cell.border_color, cell.rect, cell.bsize) # dibujamos el borde de la celda
+				if cell.number != 0: # dibujamos el número de la celda si no es cero
+					self.tsurface.blit(self.nfont.render(str(cell.number), True, cell.number_color, cell.background_color), (cell.posx+(CELL_WIDTH - self.nfont.size(str(cell.number))[0])/2, cell.posy+(CELL_WIDTH - self.nfont.size(str(cell.number))[1])/2))
+		self.tsurface_aux = self.tsurface.copy()
+		self.old = self.cellsprite.cell # guardamos el anterior
 
 	def win(self):
 		""" Función que define la regla para superar el puzzle """
@@ -158,34 +176,48 @@ class Table():
 			aux[0] = (((self.cellsprite.cell.posx/CELL_WIDTH)-CAMERAX)*CELL_WIDTH)+(2*CELL_WIDTH)
 		if self.cellsprite.cell.posy/CELL_WIDTH >= CAMERAY-1:
 			aux[1] = (((self.cellsprite.cell.posy/CELL_WIDTH)-CAMERAY)*CELL_WIDTH)+(2*CELL_WIDTH)
-		(emp, ter, emp2, ter2) = (0, self.theight, 0, self.twidth) # solo recorremos la parte de la tabla que se ve (MOAR FPS)
-		if self.zoom == self.dim:
-			(emp, ter, emp2, ter2) = (0, 28, 0, 49)
-			if self.cellsprite.cell.posx/CELL_WIDTH >= CAMERAX-1:
-				emp2 = aux[0]/CELL_WIDTH
-				ter2 = self.cellsprite.cell.posx/CELL_WIDTH + CELL_WIDTH + 6
-			if self.cellsprite.cell.posy/CELL_WIDTH >= CAMERAY-1:
-				emp = aux[1]/CELL_WIDTH
-				ter = self.cellsprite.cell.posy/CELL_WIDTH + CELL_WIDTH - 5
-		self.tsurface.fill(FONDO, aux)
 		screen.fill(FONDO)
-		for x in self.table[emp2:ter2]:
-			for cell in x[emp:ter]:
-				if (cell.number == 0 and len(cell.lines) > 1 and cell.background_color == WHITE) or (cell.number != 0 and len(cell.lines) > 1 and cell.background_color == WHITE and cell.number_color != GREY) or (cell.number == 1 and len(cell.lines) > 1): # limpieza por errores
-					cell.lines = cell.lines[0:1]
-				pygame.draw.rect(self.tsurface, cell.background_color, cell.rect, 0) # dibujamos el rectangulo de la celda
-				pygame.draw.rect(self.tsurface, cell.border_color, cell.rect, cell.bsize) # dibujamos el borde de la celda
-				if len(cell.lines) > 1: # dibujamos las lineas de conexión de la celda si hay
-					pygame.draw.lines(self.tsurface, cell.lines_color, False, cell.lines, cell.lsize)
-				if cell.number != 0: # dibujamos el número de la celda si no es cero
-					self.tsurface.blit(self.nfont.render(str(cell.number), True, cell.number_color, cell.background_color), (cell.posx+(CELL_WIDTH - self.nfont.size(str(cell.number))[0])/2, cell.posy+(CELL_WIDTH - self.nfont.size(str(cell.number))[1])/2))
+		self.tsurface_aux = self.tsurface.copy() # bliteamos una copia de la anterior
+		screen.blit(self.tsurface_aux, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), (aux[0], aux[1], SCREEN_WIDTH-2*CELL_WIDTH-4, SCREEN_HEIGHT-2*CELL_WIDTH))
+		pygame.draw.rect(self.tsurface, self.old.background_color, self.old.rect, 0) # la anterior
+		pygame.draw.rect(self.tsurface, self.old.border_color, self.old.rect, self.old.bsize) # la anterior
+		if self.old.number != 0: # la anterior
+			self.tsurface.blit(self.nfont.render(str(self.old.number), True, self.old.number_color, self.old.background_color), (self.old.posx+(CELL_WIDTH - self.nfont.size(str(self.old.number))[0])/2, self.old.posy+(CELL_WIDTH - self.nfont.size(str(self.old.number))[1])/2))
+		cell = self.cellsprite.cell # la actual
+		pygame.draw.rect(self.tsurface, cell.background_color, cell.rect, 0) # la actual
+		pygame.draw.rect(self.tsurface, cell.border_color, cell.rect, cell.bsize) # la actual
+		if cell.number != 0: # la actual
+			self.tsurface.blit(self.nfont.render(str(cell.number), True, cell.number_color, cell.background_color), (cell.posx+(CELL_WIDTH - self.nfont.size(str(cell.number))[0])/2, cell.posy+(CELL_WIDTH - self.nfont.size(str(cell.number))[1])/2))				
+		if len(self.cellsprite.cell.connections) > 0:
+			for x in self.cellsprite.cell.connections: # las conexiones
+				pygame.draw.rect(self.tsurface, x.background_color, x.rect, 0) # las conexiones
+				pygame.draw.rect(self.tsurface, x.border_color, x.rect, x.bsize) # las conexiones
+				if x.number != 0: # las conexiones
+					self.tsurface.blit(self.nfont.render(str(x.number), True, x.number_color, x.background_color), (x.posx+(CELL_WIDTH - self.nfont.size(str(x.number))[0])/2, x.posy+(CELL_WIDTH - self.nfont.size(str(x.number))[1])/2))
+		if len(self.oldcon) > 0:
+			for x in self.oldcon: # las conexiones antiguas
+				pygame.draw.rect(self.tsurface, x.background_color, x.rect, 0) # las conexiones antiguas
+				pygame.draw.rect(self.tsurface, x.border_color, x.rect, x.bsize) # las conexiones antiguas
+				if x.number != 0: # las conexiones antiguas
+					self.tsurface.blit(self.nfont.render(str(x.number), True, x.number_color, x.background_color), (x.posx+(CELL_WIDTH - self.nfont.size(str(x.number))[0])/2, x.posy+(CELL_WIDTH - self.nfont.size(str(x.number))[1])/2))				
+			self.oldcon = []
+		if len(self.oldhist) > 0:
+			for x in self.oldhist: # las historias antiguas
+				pygame.draw.rect(self.tsurface, x.background_color, x.rect, 0) # las historias antiguas
+				pygame.draw.rect(self.tsurface, x.border_color, x.rect, x.bsize) # las historias antiguas
+				if x.number != 0: # las conexiones antiguas
+					self.tsurface.blit(self.nfont.render(str(x.number), True, x.number_color, x.background_color), (x.posx+(CELL_WIDTH - self.nfont.size(str(x.number))[0])/2, x.posy+(CELL_WIDTH - self.nfont.size(str(x.number))[1])/2))				
+			self.oldhist = []
 		self.sprites_list.draw(self.tsurface) # dibujamos el cellsprite
-		if self.tcheck == 0: screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 5))
-		else: screen.blit(self.nfont.render("{0} LEFT".format(self.tcheck), True, RED, FONDO), (CELL_WIDTH, 5))
+		screen.blit(self.tsurface, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), (aux[0], aux[1], SCREEN_WIDTH-2*CELL_WIDTH-4, SCREEN_HEIGHT-2*CELL_WIDTH))
+		self.old = self.cellsprite.cell # guardamos el anterior
 		if self.zoom != self.dim:
+			screen.fill(FONDO)
 			screen.blit(pygame.transform.scale(self.tsurface, self.zoom), (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), aux)
+		if self.tcheck == 0: screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 5))
 		else:
-			screen.blit(self.tsurface, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), aux)
+			screen.blit(self.nfont.render("Pixel: {0}, {1}".format(self.cellsprite.cell.number, self.cellsprite.cell.color), True, BLACK, FONDO), (CELL_WIDTH, 3))
+			screen.blit(self.nfont.render("{0} LEFT".format(self.tcheck), True, RED, FONDO), (CELL_WIDTH*9, 3))
 
 	def check(self, event):
 		""" Función para recoger los eventos del teclado 
@@ -301,6 +333,7 @@ class Table():
 						self.cell_draw(cell, self.history[0].color)
 					self.tcheck -= self.history[0].number + self.history[-1].number
 				else: # si no se cumplen las reglas
+					self.oldhist = self.history
 					for cell in self.history: # limpiamos
 						cell.lines = cell.lines[:1]
 						if cell.number_color == GREY:
@@ -311,6 +344,7 @@ class Table():
 			elif types == 6: # pulsamos la c
 				if len(oldCell.connections) > 0:
 					self.tcheck += oldCell.connections[0].number + oldCell.connections[-1].number
+					self.oldcon = oldCell.connections
 					for cell in oldCell.connections:
 						self.cell_clear(cell)
 						cell.connections = []
@@ -321,8 +355,6 @@ class Table():
 				if newCellRectY < self.theight and newCellRectY >= 0 and newCellRectX >=0 and newCellRectX < self.twidth:
 					newCell = self.table[newCellRectX][newCellRectY]
 					# reglas de parada PRE
-					# if newCell.number != 0 and ((len(self.history) > 0 and (newCell.color != self.history[0].color or newCell.number != self.history[0].number)) or (len(self.history) > 0 and len(self.history)+1 != self.history[0].number)):
-					# if not self.stop and space and not newCell in self.history and len(newCell.connections) == 0 and len(oldCell.connections) == 0: # dibujo
 					if (newCell.number != 0 and ((len(self.history) > 0 and (newCell.color != self.history[0].color or newCell.number != self.history[0].number)) or (len(self.history) > 0 and len(self.history)+1 != self.history[0].number))) or (space and (newCell in self.history or len(newCell.connections) != 0 or len(oldCell.connections) != 0)):
 						self.stop = True
 					if newCell.number_color == GREY and newCell == self.history[-2]: # ir hacia detras
