@@ -373,6 +373,7 @@ class Table():
 								oldCell.number_color = BLACK
 								self.history = self.history[0:-2]
 								newCell.lines = newCell.lines[0:-3]
+								oldCell.lines = oldCell.lines[0:1]
 							else:
 								self.cell_draw(newCell, newCell.color)
 						else:
