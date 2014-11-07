@@ -8,25 +8,25 @@ Python Paint by Pairs: an implementation of the nonogram **Paint by Pairs** usin
 There is only one unique way to link all the squares in a properly-constructed puzzle. When completed, the squares that have lines are filled; the contrast with the blank squares reveals the picture.
 
 ###Keys:
-* Use *key arrows* to move through the puzzle table. Use *x* while move to move faster.
-* Use *space* while move to draw the lines.
+* Use *key arrows* to move through the puzzle. Use *x* while move to scroll faster.
+* Use *space* while move to draw the lines between two numbers.
 * Use *c* to delete a line.
-* Use *-* to zoom out and *+* to restore to original zoom. You cannot move or paint if there is zoom.
+* Use *-* to zoom out and *+* to restore to original zoom. You cannot move or paint if there is a zoom active.
 
 ###Considerations:
-Puzzles are inside puzzle directory. Puzzle can be CSV (b&w) or JSON (color). To launch the game write on a terminal: 
+Puzzles are inside puzzle directory. A puzzle can be CSV (b&w) or JSON (color). To launch the game write on a terminal: 
 > python pypbp.py filename [PUZZLE_WIDTH] [PUZZLE_HEIGHT]
 
 > python pypbp.py generated_puzzles/toad_50x50.csv 50 50
 
 > python pypbp.py generated_puzzles/mario_50x46.json 50 46
 
-* Inside the generator directory the is a generator scrypt (and a solver one) to generate new puzzles from image bitmap (CSV or JSON). See the examples.
+* Inside the generator directory there is a generator script (and a solver one) to generate new puzzles from an image bitmap (CSV or JSON).
 * Puzzles can be from 1x1 to 800x800 (or so).
-* Game resolution is set to: 1024x600
+* Game resolution is set to: 1024x600.
 
 ###Puzzle Generator and Solver:
-The code and some examples were taken from: https://code.cs.nott.ac.uk/p/gp13-jaa/. So all credits for them. Puzzles must be inside *puzzle* directory. To use the generator:
+The code was taken from: https://code.cs.nott.ac.uk/p/gp13-jaa/. So all credits for them. Puzzles must be inside *puzzle* directory. To use the generator:
 > python generator.py [PUZZLE_WIDTH] [PUZZLE_HEIGHT] [PUZZLE_NAME] [PUZZLE_DIFFICULTY (4-10)]
 
 > python generator.py 10 10 gentestconv.json 5
@@ -40,6 +40,10 @@ Inside *Utils* directory there are two scripts to generate a puzzle (only 1's) f
 > python img_to_json.py [IMAGEN_NAME.json] [WIDTH] [HEIGHT]
 
 This will generate a *csv* or *json* file. After this you can generate a complete puzzle with the Puzzle Generator.
+
+###TODO:
+* Make a gui to select the puzzle and configure the resolution/fullscreen.
+* Mouse support.
 
 ###Contact:
 ealdorj@gmail.com
