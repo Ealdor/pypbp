@@ -172,6 +172,8 @@ class Table():
 		""" Función que actualiza en la pantalla una celda o lista d celdas """
 
 		for x in lista:
+			if (x.number == 0 and len(x.lines) > 1 and x.background_color == WHITE) or (x.number != 0 and len(x.lines) > 1 and x.background_color == WHITE and x.number_color != GREY) or (x.number == 1 and len(x.lines) > 1): # limpieza por errores
+				x.lines = x.lines[0:1]
 			pygame.draw.rect(self.tsurface, x.background_color, x.rect, 0)
 			pygame.draw.rect(self.tsurface, x.border_color, x.rect, x.bsize)
 			if len(x.lines) > 1: # dibujamos las lineas de conexión de la celda si hay
@@ -258,6 +260,8 @@ class Table():
 		elif event.type == pygame.locals.KEYUP and event.key == pygame.locals.K_SPACE: # levantamos el espacio
 			self.process(5, False)
 			return True
+		else:
+			return False
 
 	def cell_draw(self, cell, color):
 		""" Función para poner colores de dibujo
@@ -440,13 +444,12 @@ if __name__ == '__main__':
 	init_pygame()
 	screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
 	pygame.display.set_caption('Pypbp 0.2')
-	#clock = pygame.time.Clock()
 	table = Table(int(c), int(r), 1, 1, t)
-	loop = True
-	wep = True
+	loop = wep = True
 	while loop:
-		#clock.tick(FPS)
-		if wep: table.draw()
+		if wep: 
+			table.draw()
+			wep = False
 		pygame.display.flip()
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT or (event.type == pygame.locals.KEYDOWN and event.key == pygame.locals.K_ESCAPE):
