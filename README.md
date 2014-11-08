@@ -23,7 +23,7 @@ Puzzles are inside puzzle directory. A puzzle can be CSV (b&w) or JSON (color). 
 
 * Inside the generator directory there is a generator script (and a solver one) to generate new puzzles from an image bitmap (CSV or JSON).
 * Puzzles can be from 1x1 to 800x800 (or so).
-* Game resolution is set to: 1024x600.
+* Game resolution is set to: 1024x600 (window is resizeable).
 
 ###Puzzle Generator and Solver:
 The code was taken from: https://code.cs.nott.ac.uk/p/gp13-jaa/. So all credits for them. Puzzles must be inside *puzzle* directory. To use the generator:
