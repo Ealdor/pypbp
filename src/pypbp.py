@@ -438,7 +438,7 @@ if __name__ == '__main__':
 		print "Use: pyPbP.py [puzzle_file] [PUZZLE_WIDTH] [PUZZLE_HEIGHT]"
 		sys.exit()
 	init_pygame()
-	screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+	screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
 	pygame.display.set_caption('Pypbp 0.2')
 	#clock = pygame.time.Clock()
 	table = Table(int(c), int(r), 1, 1, t)
@@ -451,6 +451,12 @@ if __name__ == '__main__':
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT or (event.type == pygame.locals.KEYDOWN and event.key == pygame.locals.K_ESCAPE):
 				loop = False
-			else:
+			elif event.type == pygame.locals.KEYDOWN or event.type == pygame.locals.KEYUP:
 				wep = table.check(event)
+			elif event.type == pygame.VIDEORESIZE:
+				SCREEN_WIDTH, SCREEN_HEIGHT = event.w, event.h
+				CAMERAX = (SCREEN_WIDTH/CELL_WIDTH) / 2
+				CAMERAY = (SCREEN_HEIGHT/CELL_WIDTH) / 2
+				screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
+				table.draw()
 	sys.exit()
