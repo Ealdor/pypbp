@@ -205,7 +205,7 @@ class Table():
 		if self.zoom != self.dim: # ZOOM
 			screen.fill(FONDO)
 			screen.blit(pygame.transform.scale(self.tsurface, self.zoom), (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), aux)
-		if self.tcheck == 0: screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 5)) # MARCADOR
+		if self.tcheck == 0: screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 3)) # MARCADOR
 		else:
 			screen.blit(self.nfont.render("Pixel: {0}, {1}".format(self.cellsprite.cell.number, self.cellsprite.cell.color), True, BLACK, FONDO), (CELL_WIDTH, 3))
 			screen.blit(self.nfont.render("{0} LEFT".format(self.tcheck), True, RED, FONDO), (CELL_WIDTH*9, 3))
@@ -398,7 +398,7 @@ def init_pygame():
 
 	pygame.font.init()
 
-def init_puzzle(fname, ncolumns, nrows):
+def init_puzzle(fname):
 	""" Inicializa el tablero desde un archivo pasado
 
 	Args:
@@ -417,6 +417,22 @@ def init_puzzle(fname, ncolumns, nrows):
 		print "File not found"
 		sys,exit()
 	typef = fname.split('.')[1]
+	if typef == 'csv': # conteo de columnas y filas
+		contador = 0
+		ncolumns = len(string.split(string.strip(f.readline()), ','))
+		f.seek(0)
+		for linea in f.xreadlines( ): contador+= 1
+		nrows = contador
+	elif typef == 'json':
+		contador = 0
+		data = json.load(f)
+		for row in xrange(len(data)):
+			for col in xrange(len(data[row])):
+				contador += 1
+			break
+		nrows = len(data)
+		ncolumns = contador
+	f.seek(0)
 	table = [[Cell(x*CELL_WIDTH, y*CELL_WIDTH, 0) for y in xrange(0, int(nrows))] for x in xrange(0, int(ncolumns))]
 	if typef == 'csv': # CSV
 		for x in xrange(0, int(nrows)):
@@ -436,14 +452,14 @@ def init_puzzle(fname, ncolumns, nrows):
 	return ncolumns, nrows, table
 
 if __name__ == '__main__':
-	if len(sys.argv) == 4:
-		c, r, t = init_puzzle(sys.argv[1], sys.argv[2], sys.argv[3])
+	if len(sys.argv) == 2:
+		c, r, t = init_puzzle(sys.argv[1])
 	else:
-		print "Use: pyPbP.py [puzzle_file] [PUZZLE_WIDTH] [PUZZLE_HEIGHT]"
+		print "Use: pyPbP.py [puzzle_file]"
 		sys.exit()
 	init_pygame()
 	screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
-	pygame.display.set_caption('Pypbp 0.2')
+	pygame.display.set_caption('Pypbp 0.3')
 	table = Table(int(c), int(r), 1, 1, t)
 	loop = wep = True
 	while loop:
