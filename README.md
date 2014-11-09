@@ -15,7 +15,7 @@ There is only one unique way to link all the squares in a properly-constructed p
 
 ###Considerations:
 Puzzles are inside puzzle directory. A puzzle can be CSV (b&w) or JSON (color). To launch the game write on a terminal: 
-> python pypbp.py filename
+> python main.py filename
 
 > python main.py generated_puzzles/toad_50x50.csv
 
