@@ -33,10 +33,10 @@ def generate_csv(fname, ncol, nrow):
 	for x in xrange(0, nrow):
 		for y in xrange(0, ncol):
 			pixcolor = simage.get_at((y,x))
-			if (pixcolor.r,pixcolor.g,pixcolor.b) == (0, 0, 0): #negro
-				f.write('1')
-			else: 
+			if (pixcolor.r,pixcolor.g,pixcolor.b) == (255, 255, 255): # blanco
 				f.write('0')
+			else: 
+				f.write('1')
 			if y == ncol-1: f.write('\n')
 			else: f.write(',')
 	f.close()
