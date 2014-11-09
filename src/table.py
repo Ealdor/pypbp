@@ -17,88 +17,11 @@
 ##    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
-import json
 import sys
-import string
 import pygame
 import pygame.locals
-
-# res: 1024x600 -> CELL: 20 -> CAMX: (SW/CW) / 2, CAMY: (SH/CW) / 2
-CELL_WIDTH = 20
-FONT_SIZE = 20
-SCREEN_WIDTH = 1024
-SCREEN_HEIGHT = 600
-CAMERAX = (SCREEN_WIDTH/CELL_WIDTH) / 2
-CAMERAY = (SCREEN_HEIGHT/CELL_WIDTH) / 2
-FPS = 30
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-GREY = (192, 192, 192)
-FONDO = (255,233,165)
-BLUE = (0, 0, 255)
-
-class Cell():
-	""" Clase que representa una celda
-
-    Args:
-        posx(int): posicion horizontal
-        posy(int): posicion vertical
-        number(int): numero
-
-    Attributes:
-    	background_color(set): color del fondo
-    	border_color(set): color del borde
-    	border_color_sprite(set): color del sprite de seleccion
-    	number_color(set): color del número
-    	lines_color(set): color de las lineas de conexion
-    	rect(Rect): rectangulo de la celda
-    	connections(list): lista de Celdas conectadas. Todas
-    	lines(list): lista con las lineas de conexion
-    	bsize(int): tamaño del borde
-    	lsize(int): tamaño de las lineas de conexion
-
-    """
-
-	def __init__(self, posx, posy, number, color=BLACK):
-		self.posx = posx
-		self.posy = posy
-		self.number = number
-		self.color = color
-		self.background_color = WHITE
-		self.border_color = GREY
-		self.border_color_sprite = RED
-		self.number_color = color
-		self.lines_color = GREY
-		self.rect = pygame.Rect(self.posx, self.posy, CELL_WIDTH, CELL_WIDTH)
-		self.connections = []
-		self.lines = [self.rect.center]
-		self.bsize = 1
-		self.lsize = 2
-
-class CellSprite(pygame.sprite.Sprite):
-	""" Clase que representa el sprite de selección
-
-    Args:
-        cell(Cell): celda actual
-        bsize(int): tamaño del borde
-
-    Attributes:
-    	image(Surface): superficie de la celda
-    	rect(Rect): rectangulo de la superficie
-
-    """
-
-	def __init__(self, cell, bsize):
-		pygame.sprite.Sprite.__init__(self)
-		self.cell = cell
-		self.bsize = bsize
-		self.image = pygame.Surface([CELL_WIDTH, CELL_WIDTH])
-		pygame.draw.rect(self.image, self.cell.border_color_sprite, (0, 0, CELL_WIDTH, CELL_WIDTH), self.bsize)
-		self.rect = self.image.get_rect()
-		self.rect.x = self.cell.posx
-		self.rect.y = self.cell.posy
-		self.image.set_colorkey(BLACK)
+from constants import *
+from cells import *
 
 class Table():
 	""" Clase que representa un tablero
@@ -122,7 +45,7 @@ class Table():
     	
     """	
 
-	def __init__(self, twidth, theight, tposx, tposy, table):
+	def __init__(self, twidth, theight, tposx, tposy, table, screen):
 		self.twidth = twidth
 		self.theight = theight
 		self.tposx = tposx
@@ -141,8 +64,9 @@ class Table():
 		self.history = []
 		self.stop = False
 		self.tcheck = 0
-		self.win()
+		self.screen = screen
 		self.zoom = self.dim
+		self.win()
 		self.first_draw()
 
 	def first_draw(self):
@@ -184,14 +108,19 @@ class Table():
 	def draw(self):
 		""" Función para dibujar el tablero y todos sus componenetes (cell y cellsprite) """
 
-		aux = [0, 0, SCREEN_WIDTH, SCREEN_HEIGHT] # solo actualizamos la parte de la pantalla que se ve (FPS!!!1!11!!)
-		if self.cellsprite.cell.posx/CELL_WIDTH >= CAMERAX-1:
-			aux[0] = (((self.cellsprite.cell.posx/CELL_WIDTH)-CAMERAX)*CELL_WIDTH)+(2*CELL_WIDTH)
-		if self.cellsprite.cell.posy/CELL_WIDTH >= CAMERAY-1:
-			aux[1] = (((self.cellsprite.cell.posy/CELL_WIDTH)-CAMERAY)*CELL_WIDTH)+(2*CELL_WIDTH)
-		screen.fill(FONDO)
+		# CONTROLAMOS LA CAMARA
+		sd = self.screen.get_size()
+		camd = (sd[0]/CELL_WIDTH) / 2, (sd[1]/CELL_WIDTH) / 2
+		aux = [0, 0, sd[0], sd[1]] # solo actualizamos la parte de la pantalla que se ve (FPS!!!1!11!!)
+		if self.cellsprite.cell.posx/CELL_WIDTH >= camd[0]-1:
+			aux[0] = (((self.cellsprite.cell.posx/CELL_WIDTH)-camd[0])*CELL_WIDTH)+(2*CELL_WIDTH)
+		if self.cellsprite.cell.posy/CELL_WIDTH >= camd[1]-1:
+			aux[1] = (((self.cellsprite.cell.posy/CELL_WIDTH)-camd[1])*CELL_WIDTH)+(2*CELL_WIDTH)
+
+		# DIBUJAMOS
+		self.screen.fill(FONDO)
 		self.tsurface_aux = self.tsurface.copy() # bliteamos una copia de la anterior
-		screen.blit(self.tsurface_aux, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), (aux[0], aux[1], SCREEN_WIDTH-2*CELL_WIDTH-4, SCREEN_HEIGHT-2*CELL_WIDTH))
+		self.screen.blit(self.tsurface_aux, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), (aux[0], aux[1], sd[0]-2*CELL_WIDTH-4, sd[1]-2*CELL_WIDTH))
 		self.update([self.old]) # ANTERIOR
 		self.update([self.cellsprite.cell]) # ACTUAL
 		self.update(self.cellsprite.cell.connections) # CONEXIONES (levantamos y correcto)
@@ -200,15 +129,19 @@ class Table():
 		self.update(self.oldhist) # HISTORIA (en proceso)
 		if len(self.oldhist) > 0: self.oldhist = []
 		self.sprites_list.draw(self.tsurface) # dibujamos el cellsprite
-		screen.blit(self.tsurface, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), (aux[0], aux[1], SCREEN_WIDTH-2*CELL_WIDTH-4, SCREEN_HEIGHT-2*CELL_WIDTH))
+		self.screen.blit(self.tsurface, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), (aux[0], aux[1], sd[0]-2*CELL_WIDTH-4, sd[1]-2*CELL_WIDTH))
 		self.old = self.cellsprite.cell # guardamos el anterior
-		if self.zoom != self.dim: # ZOOM
-			screen.fill(FONDO)
-			screen.blit(pygame.transform.scale(self.tsurface, self.zoom), (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), aux)
-		if self.tcheck == 0: screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 3)) # MARCADOR
+		
+		# ZOOM
+		if self.zoom != self.dim: 
+			self.screen.fill(FONDO)
+			self.screen.blit(pygame.transform.scale(self.tsurface, self.zoom), (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), aux)
+		
+		# INTERFAZ
+		if self.tcheck == 0: self.screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 3)) # MARCADOR
 		else:
-			screen.blit(self.nfont.render("Pixel: {0}, {1}".format(self.cellsprite.cell.number, self.cellsprite.cell.color), True, BLACK, FONDO), (CELL_WIDTH, 3))
-			screen.blit(self.nfont.render("{0} LEFT".format(self.tcheck), True, RED, FONDO), (CELL_WIDTH*9, 3))
+			self.screen.blit(self.nfont.render("Pixel: {0}, {1}".format(self.cellsprite.cell.number, self.cellsprite.cell.color), True, BLACK, FONDO), (CELL_WIDTH, 3))
+			self.screen.blit(self.nfont.render("{0} LEFT".format(self.tcheck), True, RED, FONDO), (CELL_WIDTH*9, 3))
 
 	def check(self, event):
 		""" Función para recoger los eventos del teclado 
@@ -222,7 +155,7 @@ class Table():
 		"""
 
 		amm = 1
-		if pygame.key.get_pressed()[pygame.locals.K_x] != 0:
+		if pygame.key.get_pressed()[pygame.locals.K_x] != 0: # presionada la x
 			amm = 5
 		if event.type == pygame.locals.KEYDOWN:
 			if pygame.key.get_pressed()[pygame.locals.K_SPACE] != 0: # presionamos el espacio
@@ -392,90 +325,3 @@ class Table():
 			# reglas de parada POST
 			if space and (len(self.history) > 0 and len(self.history) == self.history[0].number): 
 				self.stop = True
-
-def init_pygame():
-	""" Función inicializar los modulos de pygame necesarios """
-
-	pygame.font.init()
-
-def init_puzzle(fname):
-	""" Inicializa el tablero desde un archivo pasado
-
-	Args:
-		fname(string): nombre del fichero
-
-	Returns:
-		ncolumns(string): numero de columnas del puzzle
-		nrows(string): numero de filas del puzzle
-		table(list): tabla del puzzle
-
-	"""
-	
-	try:
-		f = open(fname, 'r')
-	except IOError:
-		print "File not found"
-		sys,exit()
-	typef = fname.split('.')[1]
-	if typef == 'csv': # conteo de columnas y filas
-		contador = 0
-		ncolumns = len(string.split(string.strip(f.readline()), ','))
-		f.seek(0)
-		for linea in f.xreadlines( ): contador+= 1
-		nrows = contador
-	elif typef == 'json':
-		contador = 0
-		data = json.load(f)
-		for row in xrange(len(data)):
-			for col in xrange(len(data[row])):
-				contador += 1
-			break
-		nrows = len(data)
-		ncolumns = contador
-	f.seek(0)
-	table = [[Cell(x*CELL_WIDTH, y*CELL_WIDTH, 0) for y in xrange(0, int(nrows))] for x in xrange(0, int(ncolumns))]
-	if typef == 'csv': # CSV
-		for x in xrange(0, int(nrows)):
-			num = string.split(string.strip(f.readline()), ',')
-			for y in xrange(0, int(ncolumns)):
-				tn = int(string.split(num.pop(0), ',')[0])
-				table[y][x].number = tn
-	elif typef == 'json': # JSON
-		data = json.load(f)
-		for row in xrange(len(data)):
-			for col in xrange(len(data[row])):
-				value = data[row][col]["number"]
-				c = data[row][col]["color"]
-				colour = [c["r"], c["g"], c["b"]]
-				table[col][row] = Cell(col*CELL_WIDTH, row*CELL_WIDTH, value, colour)
-	f.close()
-	return ncolumns, nrows, table
-
-if __name__ == '__main__':
-	if len(sys.argv) == 2:
-		c, r, t = init_puzzle(sys.argv[1])
-	else:
-		print "Use: pyPbP.py [puzzle_file]"
-		sys.exit()
-	init_pygame()
-	screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
-	pygame.display.set_caption('Pypbp 0.3')
-	table = Table(int(c), int(r), 1, 1, t)
-	loop = wep = True
-	while loop:
-		if wep: 
-			table.draw()
-			wep = False
-		pygame.display.flip()
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT or (event.type == pygame.locals.KEYDOWN and event.key == pygame.locals.K_ESCAPE):
-				loop = False
-			elif event.type == pygame.locals.KEYDOWN or event.type == pygame.locals.KEYUP:
-				wep = table.check(event)
-			elif event.type == pygame.VIDEORESIZE:
-				SCREEN_WIDTH, SCREEN_HEIGHT = event.w, event.h
-				CAMERAX = (SCREEN_WIDTH/CELL_WIDTH) / 2
-				CAMERAY = (SCREEN_HEIGHT/CELL_WIDTH) / 2
-				screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
-				table.draw()
-	sys.exit()

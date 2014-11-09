@@ -17,9 +17,9 @@ There is only one unique way to link all the squares in a properly-constructed p
 Puzzles are inside puzzle directory. A puzzle can be CSV (b&w) or JSON (color). To launch the game write on a terminal: 
 > python pypbp.py filename
 
-> python pypbp.py generated_puzzles/toad_50x50.csv
+> python main.py generated_puzzles/toad_50x50.csv
 
-> python pypbp.py generated_puzzles/mario_50x46.json
+> python main.py generated_puzzles/mario_50x46.json
 
 * Inside the generator directory there is a generator script (and a solver one) to generate new puzzles from an image bitmap (CSV or JSON).
 * Puzzles can be from 1x1 to 800x800 (or so).
