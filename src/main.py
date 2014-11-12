@@ -24,23 +24,19 @@ from init import *
 from table import *
 
 if __name__ == '__main__':
-	if len(sys.argv) == 2:
-		ncol, nrow, tab = init_puzzle(sys.argv[1])
-	else:
-		sys.exit()
-
 	# INICIALIZAMOS PYGAME
 	init_pygame()
 	screen = pygame.display.set_mode((1024, 600), pygame.RESIZABLE)
 	pygame.display.set_caption('Pypbp 0.3')
 	
 	# CREAMOS UN TABLERO NUEVO
+	ncol, nrow, tab = init_puzzle(sys.argv[1])
 	table = Table(ncol, nrow, 1, 1, tab, screen)
 
 	# BUCLE INFINITO
 	loop = wep = True
 	while loop:
-		if wep: # solo actualizamos i ha habido algun cambio
+		if wep: # solo actualizamos si ha habido algun movimiento
 			table.draw()
 			wep = False
 		pygame.display.flip()
@@ -49,7 +45,7 @@ if __name__ == '__main__':
 				loop = False
 			elif event.type == pygame.locals.KEYDOWN or event.type == pygame.locals.KEYUP:
 				wep = table.check(event)
-			elif event.type == pygame.VIDEORESIZE:
+			elif event.type == pygame.VIDEORESIZE: # si se cambia el tamaño de la ventana
 				table.screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
 				table.draw()
 	sys.exit()
