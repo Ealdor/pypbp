@@ -30,6 +30,97 @@ import pygame
 import string
 import random
 
+def findfinal(table_all, dire, ini, allini):
+	if dire[0] >= 0 and dire[1] >= 0:
+		for x in table_all:
+			for y in x:
+				if y.get('number') == 4 and y.get('posicion') == dire and y.get('posicion') != ini:
+					# print "fin: {0}".format(dire)
+					return True
+	return False
+
+def find(table_all, dire, ini, allini):
+	if dire[0] >= 0 and dire[1] >= 0:
+		for x in table_all:
+			for y in x:
+				if (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and (y.get('posicion') == dire) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1]:
+					#print "camino: {0}".format(dire)
+					return True
+	return False
+
+def recursive(table_all, ini, allini, ax):
+	for dire2 in ax:
+		if find(table_all, dire2, ini, allini):
+			aux3 = [(dire2[0], dire2[1]-1), (dire2[0]+1, dire2[1]), (dire2[0], dire2[1]+1), (dire2[0]-1, dire2[1])]
+			return aux3
+
+def way_mov(table_all, ini, allini):
+	aux = [(ini[0], ini[1]-1), (ini[0]+1, ini[1]), (ini[0], ini[1]+1), (ini[0]-1, ini[1])]
+
+	fails = 0
+
+	# for dire in aux:
+	# 	if find(table_all, dire, ini, allini):
+	# 		aux2 = [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
+	# 		for dire2 in aux2:
+	# 			if findfinal(table_all, dire2, ini, allini):
+	# 				fails += 1
+	# 				if fails == 2:
+	# 					#print "FALLO!"
+	# 					return True
+
+	# for dire in aux:
+	# 	if find(table_all, dire, ini, allini):
+	# 		aux2 = [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
+			
+	# 		for dire2 in aux2:
+	# 			if find(table_all, dire2, ini, allini):
+	# 				aux3 = [(dire2[0], dire2[1]-1), (dire2[0]+1, dire2[1]), (dire2[0], dire2[1]+1), (dire2[0]-1, dire2[1])]
+					
+	# 				for dire3 in aux3:
+	# 					if findfinal(table_all, dire3, ini, allini):
+	# 						fails += 1
+	# 						if fails == 2:
+	# 							#print "FALLO!"
+	# 							return True
+
+	for dire in aux:
+		if find(table_all, dire, ini, allini):
+			aux2 = [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
+			aux3 = recursive(table_all, ini, allini, aux2)
+			if aux3 != None:
+				for dire3 in aux3:
+					if findfinal(table_all, dire3, ini, allini):
+						fails += 1
+						if fails == 2:
+							#print "FALLO!"
+							return True
+
+	return False
+
+def cond_dos(table_all):
+	""" COND2: si mediante cuandros blancos o su propio camino hay mas de un camino posible desde un número a su pareja. """
+
+	print "Paso 2: Buscando posibles fallos: ",
+
+	aux = []
+
+	for x in table_all:
+		for y in x:
+			if y.get('number') == 4 and len(y.get('conn')) > 0:
+				#print "Pixel: {0}, {1}".format(y.get('number'), y.get('conn'))
+				if way_mov(table_all, y.get('posicion'), y):
+					pos = y.get('posicion')
+					con = y.get('conn')
+					for w in con:
+						aux.append(w)
+
+	for w in aux:
+		table_all[w[0]][w[1]]['number'] = 1
+		table_all[w[0]][w[1]]['conn'] = []
+
+	return aux
+
 def random_dir(table_uno, pstart):
 	mov = {'up': None, 'down': None, 'left': None, 'right': None, 'stay': pstart}
 	
@@ -45,47 +136,47 @@ def random_dir(table_uno, pstart):
 	aux = random.choice(mov.keys())
 	while mov.get(aux) == None:
 		aux = random.choice(mov.keys())
-	print "movimiento: " + aux
+	#print "movimiento: " + aux
 	return mov.get(aux)
 
 def step_two(table_uno, pstart):
-	""" Elegir aleatoriamente dirección libre y no marcada (no haya sido elegida para este camino antes)."""
+	""" Elegir aleatoriamente dirección libre y no marcada (no haya sido elegida para este camino antes). """
 	
-	print "principio: {0}".format(pstart)
+	#print "principio: {0}".format(pstart)
 	history = []
 
 	aux = random_dir(table_uno, pstart)
 
 	history.append(pstart)
 	if aux != pstart:
-		print "nos movemos a: {0}".format(table_uno[aux])
+		#print "nos movemos a: {0}".format(table_uno[aux])
 		history.append(table_uno[aux])
 		pstart = table_uno[aux]
 		table_uno.pop(aux)
 
 	while aux != pstart:
-		print "punto partida: {0}".format(pstart)
+		#print "punto partida: {0}".format(pstart)
 		aux = random_dir(table_uno, pstart)
 		if aux == pstart:
 			break
-		print "nos movemos a: {0}".format(table_uno[aux])
+		#print "nos movemos a: {0}".format(table_uno[aux])
 		history.append(table_uno[aux])
 		pstart = table_uno[aux]
 		table_uno.pop(aux)
 	
-	print "final: {0}".format(aux)
+	#print "final: {0}".format(aux)
 	return history
 
 def step_one(table_all, table_uno):
 	""" Elegir pixel aleatorio del archivo que este libre (no haya camino definido) y sea un numero distinto de cero. """
 
+	print "Paso 1: Generando puzzle:",
 	while len(table_uno) > 0:
 		ran = random.randint(0, len(table_uno)-1)
 		changes = step_two(table_uno, table_uno.pop(ran))
-
-		prin = changes[0]
-		ter = changes[-1]
-		print prin, ter
+		
+		# print ".",
+		# sys.stdout.flush()
 
 		for change in changes:
 			for x in table_all:
@@ -93,16 +184,22 @@ def step_one(table_all, table_uno):
 					for key in y:
 						if key == 'posicion':
 							if change == y[key]:
-								if  prin == y[key] or ter == y[key]:
+								if changes[0] == y[key] or changes[-1] == y[key]:
 									y['number'] = len(changes)
+									if changes[0] == y[key]:
+										y['conn'] = changes
 								else:
-									y['number'] = 0
+									y['number'] = -1 # para indicar la solucion correcta
+	print "Done"
 
 def write_file(table_all, ncolumns, nrows):
 	f = open("temp.csv", 'w')
 	for x in xrange(0, nrows):
 		for y in xrange(0, ncolumns):
-			f.write(str(table_all[y][x].get('number')))
+			if table_all[y][x].get('number') == -1:
+				f.write('0')
+			else:
+				f.write(str(table_all[y][x].get('number')))
 			if y == ncolumns-1: f.write('\n')
 			else: f.write(',')
 
@@ -133,12 +230,20 @@ if __name__ == "__main__":
 			for y in xrange(0, int(ncolumns)):
 				tn = int(string.split(num.pop(0), ',')[0])
 				if tn == 0:
-					table_all[y][x] = {'number': 0, 'posicion': (y, x)}
+					table_all[y][x] = {'number': 0, 'posicion': (y, x), 'conn': []}
 				else:
-					table_all[y][x] = {'number': 1, 'posicion': (y, x)}
+					table_all[y][x] = {'number': 1, 'posicion': (y, x), 'conn': []}
 					table_uno.append((y, x))
 
 	step_one(table_all, table_uno)
 	write_file(table_all, ncolumns, nrows)
+	res = cond_dos(table_all)
+	print "{0} fallos".format(len(res)/3)
+	while len(res) > 0:
+		step_one(table_all, res)
+		res = cond_dos(table_all)
+		print "{0} fallos".format(len(res)/3)
+
+	#write_file(table_all, ncolumns, nrows)
 
 	sys.exit()
