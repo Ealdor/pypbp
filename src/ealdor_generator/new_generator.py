@@ -30,13 +30,19 @@ import pygame
 import string
 import random
 
+fails = 0
+
 def findfinal(table_all, dire, ini, allini):
+	global fails
+
 	if dire[0] >= 0 and dire[1] >= 0:
 		for x in table_all:
 			for y in x:
-				if y.get('number') == 4 and y.get('posicion') == dire and y.get('posicion') != ini:
+				if y.get('number') == allini.get('number') and y.get('posicion') == dire and y.get('posicion') != ini:
 					# print "fin: {0}".format(dire)
-					return True
+					fails +=1
+					if fails == 2:
+						return True
 	return False
 
 def find(table_all, dire, ini, allini):
@@ -48,66 +54,67 @@ def find(table_all, dire, ini, allini):
 					return True
 	return False
 
-def recursive(table_all, ini, allini, ax):
-	for dire2 in ax:
-		if find(table_all, dire2, ini, allini):
-			aux3 = [(dire2[0], dire2[1]-1), (dire2[0]+1, dire2[1]), (dire2[0], dire2[1]+1), (dire2[0]-1, dire2[1])]
-			return aux3
+def recursive(table_all, ini, allini, dire):
+	if find(table_all, dire, ini, allini):
+		return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
+	else:
+		return []
 
 def way_mov(table_all, ini, allini):
-	aux = [(ini[0], ini[1]-1), (ini[0]+1, ini[1]), (ini[0], ini[1]+1), (ini[0]-1, ini[1])]
-
+	global fails
 	fails = 0
 
-	# for dire in aux:
-	# 	if find(table_all, dire, ini, allini):
-	# 		aux2 = [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
-	# 		for dire2 in aux2:
-	# 			if findfinal(table_all, dire2, ini, allini):
-	# 				fails += 1
-	# 				if fails == 2:
-	# 					#print "FALLO!"
-	# 					return True
-
-	# for dire in aux:
-	# 	if find(table_all, dire, ini, allini):
-	# 		aux2 = [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
-			
-	# 		for dire2 in aux2:
-	# 			if find(table_all, dire2, ini, allini):
-	# 				aux3 = [(dire2[0], dire2[1]-1), (dire2[0]+1, dire2[1]), (dire2[0], dire2[1]+1), (dire2[0]-1, dire2[1])]
-					
-	# 				for dire3 in aux3:
-	# 					if findfinal(table_all, dire3, ini, allini):
-	# 						fails += 1
-	# 						if fails == 2:
-	# 							#print "FALLO!"
-	# 							return True
+	aux = [(ini[0], ini[1]-1), (ini[0]+1, ini[1]), (ini[0], ini[1]+1), (ini[0]-1, ini[1])]
 
 	for dire in aux:
-		if find(table_all, dire, ini, allini):
-			aux2 = [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
-			aux3 = recursive(table_all, ini, allini, aux2)
-			if aux3 != None:
-				for dire3 in aux3:
-					if findfinal(table_all, dire3, ini, allini):
-						fails += 1
-						if fails == 2:
-							#print "FALLO!"
-							return True
+		for dire2 in recursive(table_all, ini, allini, dire):
+			if allini.get('number') > 3:
+				for dire3 in recursive(table_all, ini, allini, dire2):
+					if allini.get('number') > 4:
+						for dire4 in recursive(table_all, ini, allini, dire3):
+							if allini.get('number') > 5:
+								for dire5 in recursive(table_all, ini, allini, dire4):
+									if allini.get('number') > 6:
+										for dire6 in recursive(table_all, ini, allini, dire5):
+											if allini.get('number') > 7:
+												for dire7 in recursive(table_all, ini, allini, dire6):
+													if allini.get('number') > 8:
+														for dire8 in recursive(table_all, ini, allini, dire7):
+															if allini.get('number') > 9:
+																for dire9 in recursive(table_all, ini, allini, dire8):
+																	if allini.get('number') > 10:
+																		for dire10 in recursive(table_all, ini, allini, dire9):
+																			if findfinal(table_all, dire10, ini, allini): return True
+																	else:
+																		if findfinal(table_all, dire9, ini, allini): return True		
+															else:
+																if findfinal(table_all, dire8, ini, allini): return True
+													else:
+														if findfinal(table_all, dire7, ini, allini): return True
+											else:
+												if findfinal(table_all, dire6, ini, allini): return True
+									else:
+										if findfinal(table_all, dire5, ini, allini): return True	
+							else:
+								if findfinal(table_all, dire4, ini, allini): return True
+					else: 
+						if findfinal(table_all, dire3, ini, allini): return True
+			else:
+				if findfinal(table_all, dire2, ini, allini): return True
 
 	return False
 
 def cond_dos(table_all):
 	""" COND2: si mediante cuandros blancos o su propio camino hay mas de un camino posible desde un número a su pareja. """
 
-	print "Paso 2: Buscando posibles fallos: ",
+	print "Paso 2: Buscando y corrigiendo posibles fallos:",
+	sys.stdout.flush()
 
 	aux = []
 
 	for x in table_all:
 		for y in x:
-			if y.get('number') == 4 and len(y.get('conn')) > 0:
+			if y.get('number') > 2 and len(y.get('conn')) > 0:
 				#print "Pixel: {0}, {1}".format(y.get('number'), y.get('conn'))
 				if way_mov(table_all, y.get('posicion'), y):
 					pos = y.get('posicion')
@@ -134,8 +141,12 @@ def random_dir(table_uno, pstart):
 	except: pass	
 	
 	aux = random.choice(mov.keys())
+	# if aux == 'stay':
+	# 	aux = random.choice(mov.keys())
 	while mov.get(aux) == None:
 		aux = random.choice(mov.keys())
+		# if aux == 'stay':
+		# 	aux = random.choice(mov.keys())
 	#print "movimiento: " + aux
 	return mov.get(aux)
 
@@ -154,7 +165,7 @@ def step_two(table_uno, pstart):
 		pstart = table_uno[aux]
 		table_uno.pop(aux)
 
-	while aux != pstart:
+	while aux != pstart and len(history) < 11:
 		#print "punto partida: {0}".format(pstart)
 		aux = random_dir(table_uno, pstart)
 		if aux == pstart:
@@ -171,6 +182,8 @@ def step_one(table_all, table_uno):
 	""" Elegir pixel aleatorio del archivo que este libre (no haya camino definido) y sea un numero distinto de cero. """
 
 	print "Paso 1: Generando puzzle:",
+	sys.stdout.flush()
+
 	while len(table_uno) > 0:
 		ran = random.randint(0, len(table_uno)-1)
 		changes = step_two(table_uno, table_uno.pop(ran))
@@ -236,7 +249,6 @@ if __name__ == "__main__":
 					table_uno.append((y, x))
 
 	step_one(table_all, table_uno)
-	write_file(table_all, ncolumns, nrows)
 	res = cond_dos(table_all)
 	print "{0} fallos".format(len(res)/3)
 	while len(res) > 0:
@@ -244,6 +256,6 @@ if __name__ == "__main__":
 		res = cond_dos(table_all)
 		print "{0} fallos".format(len(res)/3)
 
-	#write_file(table_all, ncolumns, nrows)
+	write_file(table_all, ncolumns, nrows)
 
 	sys.exit()
