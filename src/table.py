@@ -70,6 +70,8 @@ class Table():
 		self.first_draw()
 
 	def first_draw(self):
+		""" Función que dibuja todo el tablero completo """
+
 		self.tsurface.fill(WHITE)
 		for x in xrange(0, self.twidth):
 			for y in xrange(0, self.theight):
@@ -93,7 +95,7 @@ class Table():
 					self.tcheck += cell.number+1
 
 	def update(self, lista):
-		""" Función que actualiza en la pantalla una celda o lista d celdas """
+		""" Función que actualiza en la pantalla una celda o lista de celdas """
 
 		for x in lista:
 			if (x.number == 0 and len(x.lines) > 1 and x.background_color == WHITE) or (x.number != 0 and len(x.lines) > 1 and x.background_color == WHITE and x.number_color != GREY) or (x.number == 1 and len(x.lines) > 1): # limpieza por errores
@@ -167,9 +169,7 @@ class Table():
 					self.process(3, True, (-1, 0))
 				elif event.key == pygame.locals.K_RIGHT:
 					self.process(4, True, (1, 0))
-				elif event.key != pygame.locals.K_SPACE:
-					pass
-				elif event.key == pygame.locals.K_SPACE and pygame.key.get_pressed()[pygame.locals.K_LEFT] == 0 and pygame.key.get_pressed()[pygame.locals.K_DOWN] == 0 and pygame.key.get_pressed()[pygame.locals.K_UP] == 0 and pygame.key.get_pressed()[pygame.locals.K_RIGHT] == 0:
+				elif event.key == pygame.locals.K_SPACE:
 					self.process(0, True)
 			elif event.key == pygame.locals.K_DOWN:
 				self.process(1, False, (0, amm))
