@@ -23,7 +23,11 @@
 		- Comprobar si el puzzle está bien generado:
 				- COND1: si desde un número se llega a uno igual (sin ser pareja) y desde la pareja del último se llega al primero.
 				- COND2: si mediante cuandros blancos hay mas de un camino posible desde un número a su pareja.
-		- Por cada fallo volver al paso 1 (menos el número problemático). Si no hay fallos se ha terminado. '''
+		- Por cada fallo volver al paso 1 (menos el número problemático). Si no hay fallos se ha terminado.
+	USE: python new_generator.py <file_path> <maxim> <iters>
+		- maxim: max lenght number (2 - 11).
+		- iters: number of iterations per number. High number means more complexity but more time to generate the puzzle (a good value is 10).
+	'''
 
 import sys
 import pygame
@@ -33,6 +37,11 @@ import random
 fails = 0
 table_uno = None
 table_all = None
+
+maxim = 0
+iters = 0
+
+i = 0
 
 def findfinal(dire, ini, allini):
 	global fails
@@ -56,8 +65,8 @@ def find(dire, ini, allini):
 
 def way_mov(ini, allini):
 	global fails
+	
 	fails = 0
-
 	aux = [(ini[0], ini[1]-1), (ini[0]+1, ini[1]), (ini[0], ini[1]+1), (ini[0]-1, ini[1])]
 
 	for dire in aux:
@@ -101,9 +110,9 @@ def way_mov(ini, allini):
 def cond_dos():
 	""" COND2: si mediante cuandros blancos o su propio camino hay mas de un camino posible desde un número a su pareja. """
 
-	aux = []
-	global table_all, table_uno
+	global table_all, table_uno, maxim, i
 
+	aux = []
 	porcent = 0
 
 	for x in table_all:
@@ -111,16 +120,21 @@ def cond_dos():
 			porcent += 1
 			print '\rPaso 2: Buscando y corrigiendo posibles fallos: {0}%'.format(porcent/((len(table_all)*len(x))/100)),
 			sys.stdout.flush()
-			if y.get('number') > 2 and len(y.get('conn')) > 0:
+			if y.get('number') >= maxim and len(y.get('conn')) > 0:
 				if way_mov(y.get('posicion'), y):
 					pos = y.get('posicion')
 					con = y.get('conn')
 					for w in con:
 						aux.append(w)
-			else:
+			elif y.get('number') > 0 and y.get('number') < maxim:
 				con = y.get('conn')
 				for w in con:
 					aux.append(w)
+
+	i += 1
+	if maxim > 1 and i == iters:
+		maxim -= 1
+		i = 0
 
 	for w in aux:
 		table_all[w[0]][w[1]]['number'] = 1
@@ -159,13 +173,14 @@ def step_two(pstart):
 	history.append(pstart)
 	
 	aux = random_dir(pstart)
-	while aux != pstart and len(history) < 11:
-		aux = random_dir(pstart)
-		if aux == pstart:
-			break
+
+	while aux != pstart and len(history) < maxim:
 		history.append(table_uno[aux])
 		pstart = table_uno[aux]
 		table_uno.pop(aux)
+		aux = random_dir(pstart)
+		if aux == pstart:
+			break
 	
 	return history
 
@@ -176,7 +191,6 @@ def step_one():
 
 	while len(table_uno) > 0:
 		ran = random.randint(0, len(table_uno)-1)
-		#changes = step_two(table_uno.pop())
 		changes = step_two(table_uno.pop(ran))
 		print '\rPaso 1: Generando puzzle: {0}'.format(len(table_uno)),
 		sys.stdout.flush()
@@ -217,6 +231,8 @@ if __name__ == "__main__":
 		sys,exit()
 
 	typef = sys.argv[1].split('.')[1]
+	maxim = int(sys.argv[2])
+	iters = int(sys.argv[3])
 
 	# CONTEO DE COLUMNAS Y FILAS
 	if typef == 'csv':
@@ -241,12 +257,12 @@ if __name__ == "__main__":
 					table_uno.append((y, x))
 	
 	while len(table_uno) > 0:
+		if maxim == 1:
+			break
 		step_one()
 		print ""
-
 		cond_dos()
-		print "- {0} fallos (o 1's)".format(len(table_uno))
-	
+		print "- {0} fallos (iter: {1}/{2}, number: {3})".format(len(table_uno), i, iters, maxim)
 		write_file(table_all, ncolumns, nrows)
 
 	write_file(table_all, ncolumns, nrows)
