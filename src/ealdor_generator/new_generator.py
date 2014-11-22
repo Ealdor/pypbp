@@ -25,7 +25,7 @@
 				- COND2: si mediante cuandros blancos hay mas de un camino posible desde un número a su pareja.
 		- Por cada fallo volver al paso 1 (menos el número problemático). Si no hay fallos se ha terminado.
 	USE: python new_generator.py <file_path> <maxim> <iters>
-		- maxim: max lenght number (2 - 11).
+		- maxim: max length number (2 - 21).
 		- iters: number of iterations per number. High number means more complexity but more time to generate the puzzle (a good value is 10).
 	'''
 
@@ -46,7 +46,7 @@ i = 0
 def findfinal(dire, ini, allini):
 	global fails
 
-	if dire[0] >= 0 and dire[1] >= 0:
+	if dire[0] >= 0 and dire[1] >= 0 and dire[0] <= ncolumns and dire[1] <= nrows:
 		for x in table_all:
 			for y in x:
 				if y.get('number') == allini.get('number') and y.get('posicion') == dire and y.get('posicion') != ini:
@@ -56,7 +56,7 @@ def findfinal(dire, ini, allini):
 	return False
 
 def find(dire, ini, allini):
-	if dire[0] >= 0 and dire[1] >= 0:
+	if dire[0] >= 0 and dire[1] >= 0 and dire[0] <= ncolumns and dire[1] <= nrows:
 		for x in table_all:
 			for y in x:
 				if (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and (y.get('posicion') == dire) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1]:
@@ -67,7 +67,7 @@ def way_mov(ini, allini):
 	global fails
 	
 	fails = 0
-	aux = [(ini[0], ini[1]-1), (ini[0]+1, ini[1]), (ini[0], ini[1]+1), (ini[0]-1, ini[1])]
+	aux = [(ini[0], ini[1]-1), (ini[0]+1, ini[1]), (ini[0], ini[1]+1), (ini[0]-1, ini[1])] #up, right, down, left
 
 	for dire in aux:
 		for dire2 in find(dire, ini, allini):
@@ -87,7 +87,47 @@ def way_mov(ini, allini):
 																for dire9 in find(dire8, ini, allini):
 																	if allini.get('number') > 10:
 																		for dire10 in find(dire9, ini, allini):
-																			if findfinal(dire10, ini, allini): return True
+																			if allini.get('number') > 11:
+																				for dire11 in find(dire10, ini, allini):
+																					if allini.get('number') > 12:
+																						for dire12 in find(dire11, ini, allini):
+																							if allini.get('number') > 13:
+																								for dire13 in find(dire12, ini, allini):
+																									if allini.get('number') > 14:
+																										for dire14 in find(dire13, ini, allini):
+																											if allini.get('number') > 15:
+																												for dire15 in find(dire14, ini, allini):
+																													if allini.get('number') > 16:
+																														for dire16 in find(dire15, ini, allini):
+																															if allini.get('number') > 17:
+																																for dire17 in find(dire16, ini, allini):
+																																	if allini.get('number') > 18:
+																																		for dire18 in find(dire17, ini, allini):
+																																			if allini.get('number') > 19:
+																																				for dire19 in find(dire18, ini, allini):
+																																					if allini.get('number') > 20:
+																																						for dire20 in find(dire19, ini, allini):
+																																							if findfinal(dire20, ini, allini): return True
+																																					else:
+																																						if findfinal(dire19, ini, allini): return True		
+																																			else:
+																																				if findfinal(dire18, ini, allini): return True		
+																																	else:
+																																		if findfinal(dire17, ini, allini): return True		
+																															else:
+																																if findfinal(dire16, ini, allini): return True		
+																													else:
+																														if findfinal(dire15, ini, allini): return True		
+																											else:
+																												if findfinal(dire14, ini, allini): return True		
+																									else:
+																										if findfinal(dire13, ini, allini): return True		
+																							else:
+																								if findfinal(dire12, ini, allini): return True		
+																					else:
+																						if findfinal(dire11, ini, allini): return True		
+																			else:
+																				if findfinal(dire10, ini, allini): return True		
 																	else:
 																		if findfinal(dire9, ini, allini): return True		
 															else:
@@ -262,7 +302,7 @@ if __name__ == "__main__":
 		step_one()
 		print ""
 		cond_dos()
-		print "- {0} fallos (iter: {1}/{2}, number: {3})".format(len(table_uno), i, iters, maxim)
+		print "- {0} fallos (iter: {1}/{2}, number: {3})".format(len(table_uno), i+1, iters, maxim)
 		write_file(table_all, ncolumns, nrows)
 
 	write_file(table_all, ncolumns, nrows)
