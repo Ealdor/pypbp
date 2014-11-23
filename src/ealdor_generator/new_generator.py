@@ -25,7 +25,7 @@
 				- COND2: si mediante cuandros blancos hay mas de un camino posible desde un número a su pareja.
 		- Por cada fallo volver al paso 1 (menos el número problemático). Si no hay fallos se ha terminado.
 	USE: python new_generator.py <file_path> <maxim> <iters>
-		- maxim: max length number (2 - 21).
+		- maxim: max length number (1 - 21).
 		- iters: number of iterations per number. High number means more complexity but more time to generate the puzzle (a good value is 10).
 	'''
 
@@ -43,10 +43,16 @@ iters = 0
 
 i = 0
 
+visited = []
+
 def findfinal(dire, ini, allini):
 	global fails
 
-	if dire[0] >= 0 and dire[1] >= 0 and dire[0] <= ncolumns and dire[1] <= nrows:
+	if (dire[0]+dire[1]) - (allini.get('conn')[-1][0] + allini.get('conn')[-1][1]) > len(allini.get('conn')):
+		return False
+	elif (allini.get('conn')[-1][0] + allini.get('conn')[-1][1]) - (dire[0]+dire[1]) > len(allini.get('conn')):
+		return False
+	elif dire[0] >= 0 and dire[1] >= 0 and dire[0] <= ncolumns and dire[1] <= nrows:
 		for x in table_all:
 			for y in x:
 				if y.get('number') == allini.get('number') and y.get('posicion') == dire and y.get('posicion') != ini:
@@ -56,94 +62,159 @@ def findfinal(dire, ini, allini):
 	return False
 
 def find(dire, ini, allini):
-	if dire[0] >= 0 and dire[1] >= 0 and dire[0] <= ncolumns and dire[1] <= nrows:
+	if (dire[0]+dire[1]) - (allini.get('conn')[-1][0] + allini.get('conn')[-1][1]) > len(allini.get('conn')):
+		return []
+	elif (allini.get('conn')[-1][0] + allini.get('conn')[-1][1]) - (dire[0]+dire[1]) > len(allini.get('conn')):
+		return []
+	elif dire[0] >= 0 and dire[1] >= 0 and dire[0] <= ncolumns and dire[1] <= nrows:
 		for x in table_all:
 			for y in x:
-				if (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and (y.get('posicion') == dire) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1]:
+				if (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and (y.get('posicion') == dire) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 					return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
 	return []
 
 def way_mov(ini, allini):
-	global fails
+	global fails, visited
 	
 	fails = 0
+
+	visited.append(ini)
+
+	# TODO: marcar cada pos de aux con un tercer valor y en find no dejar que vaya en direccion contraria en el return
 	aux = [(ini[0], ini[1]-1), (ini[0]+1, ini[1]), (ini[0], ini[1]+1), (ini[0]-1, ini[1])] #up, right, down, left
 
+	# for dire in aux:
+	# 	visited.append(dire)
+	# 	if allini.get('number') > 2:
+	# 		for dire2 in find(dire, ini, allini):
+	# 			visited.append(dire2)
+	# 			if findfinal(dire2, ini, allini): visited = []; return True
+	# 			visited.pop()
+	# 	else:
+	# 		if findfinal(dire, ini, allini): visited = []; return True
+	# 	visited.pop()
+	# visited = []
+
 	for dire in aux:
-		for dire2 in find(dire, ini, allini):
-			if allini.get('number') > 3:
-				for dire3 in find(dire2, ini, allini):
-					if allini.get('number') > 4:
-						for dire4 in find(dire3, ini, allini):
-							if allini.get('number') > 5:
-								for dire5 in find(dire4, ini, allini):
-									if allini.get('number') > 6:
-										for dire6 in find(dire5, ini, allini):
-											if allini.get('number') > 7:
-												for dire7 in find(dire6, ini, allini):
-													if allini.get('number') > 8:
-														for dire8 in find(dire7, ini, allini):
-															if allini.get('number') > 9:
-																for dire9 in find(dire8, ini, allini):
-																	if allini.get('number') > 10:
-																		for dire10 in find(dire9, ini, allini):
-																			if allini.get('number') > 11:
-																				for dire11 in find(dire10, ini, allini):
-																					if allini.get('number') > 12:
-																						for dire12 in find(dire11, ini, allini):
-																							if allini.get('number') > 13:
-																								for dire13 in find(dire12, ini, allini):
-																									if allini.get('number') > 14:
-																										for dire14 in find(dire13, ini, allini):
-																											if allini.get('number') > 15:
-																												for dire15 in find(dire14, ini, allini):
-																													if allini.get('number') > 16:
-																														for dire16 in find(dire15, ini, allini):
-																															if allini.get('number') > 17:
-																																for dire17 in find(dire16, ini, allini):
-																																	if allini.get('number') > 18:
-																																		for dire18 in find(dire17, ini, allini):
-																																			if allini.get('number') > 19:
-																																				for dire19 in find(dire18, ini, allini):
-																																					if allini.get('number') > 20:
-																																						for dire20 in find(dire19, ini, allini):
-																																							if findfinal(dire20, ini, allini): return True
-																																					else:
-																																						if findfinal(dire19, ini, allini): return True		
-																																			else:
-																																				if findfinal(dire18, ini, allini): return True		
-																																	else:
-																																		if findfinal(dire17, ini, allini): return True		
-																															else:
-																																if findfinal(dire16, ini, allini): return True		
-																													else:
-																														if findfinal(dire15, ini, allini): return True		
-																											else:
-																												if findfinal(dire14, ini, allini): return True		
-																									else:
-																										if findfinal(dire13, ini, allini): return True		
-																							else:
-																								if findfinal(dire12, ini, allini): return True		
-																					else:
-																						if findfinal(dire11, ini, allini): return True		
-																			else:
-																				if findfinal(dire10, ini, allini): return True		
-																	else:
-																		if findfinal(dire9, ini, allini): return True		
-															else:
-																if findfinal(dire8, ini, allini): return True
-													else:
-														if findfinal(dire7, ini, allini): return True
-											else:
-												if findfinal(dire6, ini, allini): return True
-									else:
-										if findfinal(dire5, ini, allini): return True	
-							else:
-								if findfinal(dire4, ini, allini): return True
-					else: 
-						if findfinal(dire3, ini, allini): return True
-			else:
-				if findfinal(dire2, ini, allini): return True
+		visited.append(dire)
+		if allini.get('number') > 2:
+			for dire2 in find(dire, ini, allini):
+				visited.append(dire2)
+				if allini.get('number') > 3:
+					for dire3 in find(dire2, ini, allini):
+						visited.append(dire3)
+						if allini.get('number') > 4:
+							for dire4 in find(dire3, ini, allini):
+								visited.append(dire4)
+								if allini.get('number') > 5:
+									for dire5 in find(dire4, ini, allini):
+										visited.append(dire5)
+										if allini.get('number') > 6:
+											for dire6 in find(dire5, ini, allini):
+												visited.append(dire6)
+												if allini.get('number') > 7:
+													for dire7 in find(dire6, ini, allini):
+														visited.append(dire7)
+														if allini.get('number') > 8:
+															for dire8 in find(dire7, ini, allini):
+																visited.append(dire8)
+																if allini.get('number') > 9:
+																	for dire9 in find(dire8, ini, allini):
+																		visited.append(dire9)
+																		if allini.get('number') > 10:
+																			for dire10 in find(dire9, ini, allini):
+																				visited.append(dire10)
+																				if allini.get('number') > 11:
+																					for dire11 in find(dire10, ini, allini):
+																						visited.append(dire11)
+																						if allini.get('number') > 12:
+																							for dire12 in find(dire11, ini, allini):
+																								visited.append(dire12)
+																								if allini.get('number') > 13:
+																									for dire13 in find(dire12, ini, allini):
+																										visited.append(dire13)
+																										if allini.get('number') > 14:
+																											for dire14 in find(dire13, ini, allini):
+																												visited.append(dire14)
+																												if allini.get('number') > 15:
+																													for dire15 in find(dire14, ini, allini):
+																														visited.append(dire15)
+																														if allini.get('number') > 16:
+																															for dire16 in find(dire15, ini, allini):
+																																visited.append(dire16)
+																																if allini.get('number') > 17:
+																																	for dire17 in find(dire16, ini, allini):
+																																		visited.append(dire17)
+																																		if allini.get('number') > 18:
+																																			for dire18 in find(dire17, ini, allini):
+																																				visited.append(dire18)
+																																				if allini.get('number') > 19:
+																																					for dire19 in find(dire18, ini, allini):
+																																						visited.append(dire19)
+																																						if allini.get('number') > 20:
+																																							for dire20 in find(dire19, ini, allini):
+																																								visited.append(dire20)
+																																								if findfinal(dire20, ini, allini): visited = []; return True
+																																								visited.pop()
+																																						else:
+																																							if findfinal(dire19, ini, allini): visited = []; return True
+																																						visited.pop()
+																																				else:
+																																					if findfinal(dire18, ini, allini): visited = []; return True
+																																				visited.pop()
+																																		else:
+																																			if findfinal(dire17, ini, allini): visited = []; return True
+																																		visited.pop()
+																																else:
+																																	if findfinal(dire16, ini, allini): visited = []; return True
+																																visited.pop()
+																														else:
+																															if findfinal(dire15, ini, allini): visited = []; return True
+																														visited.pop()
+																												else:
+																													if findfinal(dire14, ini, allini): visited = []; return True
+																												visited.pop()
+																										else:
+																											if findfinal(dire13, ini, allini): visited = []; return True
+																										visited.pop()
+																								else:
+																									if findfinal(dire12, ini, allini): visited = []; return True
+																								visited.pop()
+																						else:
+																							if findfinal(dire11, ini, allini): visited = []; return True
+																						visited.pop()
+																				else:
+																					if findfinal(dire10, ini, allini): visited = []; return True
+																				visited.pop()
+																		else:
+																			if findfinal(dire9, ini, allini): visited = []; return True
+																		visited.pop()
+																else:
+																	if findfinal(dire8, ini, allini): visited = []; return True
+																visited.pop()
+														else:
+															if findfinal(dire7, ini, allini): visited = []; return True
+														visited.pop()
+												else:
+													if findfinal(dire6, ini, allini): visited = []; return True
+												visited.pop()
+										else:
+											if findfinal(dire5, ini, allini): visited = []; return True
+										visited.pop()
+								else:
+									if findfinal(dire4, ini, allini): visited = []; return True
+								visited.pop()
+						else: 
+							if findfinal(dire3, ini, allini): visited = []; return True
+						visited.pop()
+				else:
+					if findfinal(dire2, ini, allini): visited = []; return True
+				visited.pop()
+		else:
+			if findfinal(dire, ini, allini): visited = []; return True
+		visited.pop()
+
+	visited = []
 
 	return False
 
@@ -302,7 +373,7 @@ if __name__ == "__main__":
 		step_one()
 		print ""
 		cond_dos()
-		print "- {0} fallos (iter: {1}/{2}, number: {3})".format(len(table_uno), i+1, iters, maxim)
+		print "- {0} unos (iter: {1}/{2}, number: {3})".format(len(table_uno), i+1, iters, maxim)
 		write_file(table_all, ncolumns, nrows)
 
 	write_file(table_all, ncolumns, nrows)
