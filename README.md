@@ -22,19 +22,19 @@ Puzzles are inside puzzle directory. A puzzle can be CSV (b&w) or JSON (color). 
 
 > python main.py mario_50x46.json
 
-* Inside the ealdor_generator directory there is a generator script to generate new puzzles from an image bitmap (CSV or JSON).
+* Inside the generator directory there is a generator script to generate new puzzles from an image bitmap (CSV or JSON).
 * Puzzles can be from 1x1 to 800x800 (or so).
 * Game resolution is set to: 1024x600 (window is resizeable).
 
 ###Puzzle Generator:
 To use the generator:
-> python new_generator.py <file_path> <maxim> <iters> 
+> python generator.py <file_path> <maxim> <iters> 
 
 Where:
 * maxim: max length number (1 - 21).
 * iters: number of iterations per number. Higher number means more complexity but more time to generate the puzzle (a good value is 10).
 
-> python new_generator.py gentestconv_20x20.csv 21 10
+> python generator.py gentestconv_20x20.csv 21 10
 
 This will generate a *temp.csv* or *temp.json* file with the generated puzzle.
 

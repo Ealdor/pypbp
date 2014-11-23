@@ -55,7 +55,7 @@ def findfinal(dire, ini, allini):
 	elif dire[0] >= 0 and dire[1] >= 0 and dire[0] <= ncolumns and dire[1] <= nrows:
 		for x in table_all:
 			for y in x:
-				if y.get('number') == allini.get('number') and y.get('posicion') == dire and y.get('posicion') != ini:
+				if y.get('number') == allini.get('number') and y.get('posicion') == dire and y.get('posicion') != ini and y.get('posicion') not in visited[0:-1]:
 					fails +=1
 					if fails == 2:
 						return True
@@ -80,7 +80,6 @@ def way_mov(ini, allini):
 
 	visited.append(ini)
 
-	# TODO: marcar cada pos de aux con un tercer valor y en find no dejar que vaya en direccion contraria en el return
 	aux = [(ini[0], ini[1]-1), (ini[0]+1, ini[1]), (ini[0], ini[1]+1), (ini[0]-1, ini[1])] #up, right, down, left
 
 	# for dire in aux:
@@ -303,6 +302,7 @@ def step_one():
 	while len(table_uno) > 0:
 		ran = random.randint(0, len(table_uno)-1)
 		changes = step_two(table_uno.pop(ran))
+		# changes = step_two(table_uno.pop())
 		print '\rPaso 1: Generando puzzle: {0}'.format(len(table_uno)),
 		sys.stdout.flush()
 		
@@ -372,9 +372,10 @@ if __name__ == "__main__":
 			break
 		step_one()
 		print ""
+		# write_file(table_all, ncolumns, nrows)
 		cond_dos()
 		print "- {0} unos (iter: {1}/{2}, number: {3})".format(len(table_uno), i+1, iters, maxim)
-		write_file(table_all, ncolumns, nrows)
+		# write_file(table_all, ncolumns, nrows)
 
 	write_file(table_all, ncolumns, nrows)
 
