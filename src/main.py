@@ -27,7 +27,7 @@ if __name__ == '__main__':
 	# INICIALIZAMOS PYGAME
 	init_pygame()
 	screen = pygame.display.set_mode((1024, 600), pygame.RESIZABLE)
-	pygame.display.set_caption('Pypbp 0.3')
+	pygame.display.set_caption('Pypbp 0.5')
 	
 	# CREAMOS UN TABLERO NUEVO
 	ncol, nrow, tab = init_puzzle(sys.argv[1])
