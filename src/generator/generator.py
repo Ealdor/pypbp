@@ -33,6 +33,8 @@ import sys
 import pygame
 import string
 import random
+import math
+import time
 
 fails = 0
 table_uno = None
@@ -45,32 +47,44 @@ i = 0
 
 visited = []
 
+lc = False
+
 def findfinal(dire, ini, allini):
 	global fails
 
-	if (dire[0]+dire[1]) - (allini.get('conn')[-1][0] + allini.get('conn')[-1][1]) > len(allini.get('conn')):
-		return False
-	elif (allini.get('conn')[-1][0] + allini.get('conn')[-1][1]) - (dire[0]+dire[1]) > len(allini.get('conn')):
+	if abs( math.sqrt( (dire[0] - allini.get('conn')[-1][0])**2 + (dire[1] - allini.get('conn')[-1][1])**2 )) > len(allini.get('conn')):
 		return False
 	elif dire[0] >= 0 and dire[1] >= 0 and dire[0] <= ncolumns and dire[1] <= nrows:
 		for x in table_all:
 			for y in x:
-				if y.get('number') == allini.get('number') and y.get('posicion') == dire and y.get('posicion') != ini and y.get('posicion') not in visited[0:-1]:
-					fails +=1
-					if fails == 2:
-						return True
+				if lc:
+					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') not in visited[0:-1]:
+						fails +=1
+
+						# si el fallo es debido a llegar a uno que no es su pareja original
+						# ver 
+						
+						if fails == 2:
+							return True
+				else:
+					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') == allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
+						fails +=1
+						if fails == 2:
+							return True
 	return False
 
 def find(dire, ini, allini):
-	if (dire[0]+dire[1]) - (allini.get('conn')[-1][0] + allini.get('conn')[-1][1]) > len(allini.get('conn')):
-		return []
-	elif (allini.get('conn')[-1][0] + allini.get('conn')[-1][1]) - (dire[0]+dire[1]) > len(allini.get('conn')):
+	if abs( math.sqrt( (dire[0] - allini.get('conn')[-1][0])**2 + (dire[1] - allini.get('conn')[-1][1])**2 )) > len(allini.get('conn')):
 		return []
 	elif dire[0] >= 0 and dire[1] >= 0 and dire[0] <= ncolumns and dire[1] <= nrows:
 		for x in table_all:
 			for y in x:
-				if (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and (y.get('posicion') == dire) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
-					return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
+				if lc:
+					if y.get('posicion') == dire and y.get('number') == -1 and y.get('ps') == allini.get('ps') and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
+						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
+				else:
+					if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
+						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
 	return []
 
 def way_mov(ini, allini):
@@ -228,23 +242,21 @@ def cond_dos():
 	for x in table_all:
 		for y in x:
 			porcent += 1
-			print '\rPaso 2: Buscando y corrigiendo posibles fallos: {0}%'.format(porcent/((len(table_all)*len(x))/100)),
+			if not lc:
+				print '\rBuscando y corrigiendo posibles fallos: {0}%'.format(porcent/((len(table_all)*len(x))/100)),
+			else:
+				print '\rBuscando y corrigiendo posibles duplicaciones: {0}%'.format(porcent/((len(table_all)*len(x))/100)),
 			sys.stdout.flush()
-			if y.get('number') >= maxim and len(y.get('conn')) > 0:
+			if len(y.get('conn')) > 0:
 				if way_mov(y.get('posicion'), y):
 					pos = y.get('posicion')
 					con = y.get('conn')
 					for w in con:
 						aux.append(w)
-			elif y.get('number') > 0 and y.get('number') < maxim:
-				con = y.get('conn')
-				for w in con:
-					aux.append(w)
-
-	i += 1
-	if maxim > 1 and i == iters:
-		maxim -= 1
-		i = 0
+			# elif y.get('number') > 0 and y.get('number') < maxim:
+			# 	con = y.get('conn')
+			# 	for w in con:
+			# 		aux.append(w)
 
 	for w in aux:
 		table_all[w[0]][w[1]]['number'] = 1
@@ -303,7 +315,7 @@ def step_one():
 		ran = random.randint(0, len(table_uno)-1)
 		changes = step_two(table_uno.pop(ran))
 		# changes = step_two(table_uno.pop())
-		print '\rPaso 1: Generando puzzle: {0}'.format(len(table_uno)),
+		print '\rGenerando puzzle: {0}'.format(len(table_uno)),
 		sys.stdout.flush()
 		
 		for change in changes:
@@ -318,6 +330,7 @@ def step_one():
 										y['conn'] = changes
 								else:
 									y['number'] = -1 # para indicar la solucion correcta
+								y['ps'] = len(changes)
 
 def write_file(table_all, ncolumns, nrows):
 	f = open("temp.csv", 'w')
@@ -330,7 +343,21 @@ def write_file(table_all, ncolumns, nrows):
 			if y == ncolumns-1: f.write('\n')
 			else: f.write(',')
 
+def count_one():
+	global table_uno
+
+	j = 0
+	for x in table_all:
+		for y in x:
+			if y['number'] == 1:
+				j+= 1
+				if y['posicion'] not in table_uno:
+					table_uno.append((y,x))
+	return j
+
 if __name__ == "__main__":
+
+	start_time = time.time()
 
 	table_all = []
 	table_uno = []
@@ -362,20 +389,27 @@ if __name__ == "__main__":
 			for y in xrange(0, int(ncolumns)):
 				tn = int(string.split(num.pop(0), ',')[0])
 				if tn == 0:
-					table_all[y][x] = {'number': 0, 'posicion': (y, x), 'conn': []}
+					table_all[y][x] = {'number': 0, 'posicion': (y, x), 'conn': [], 'ps': 0}
 				else:
-					table_all[y][x] = {'number': 1, 'posicion': (y, x), 'conn': []}
+					table_all[y][x] = {'number': 1, 'posicion': (y, x), 'conn': [], 'ps': 0}
 					table_uno.append((y, x))
 	
-	while len(table_uno) > 0:
-		if maxim == 1:
-			break
+	print "== Paso 1: Generando puzzle y asegurando solución única =="
+	test = 0
+	while True:
 		step_one()
-		print ""
-		# write_file(table_all, ncolumns, nrows)
-		cond_dos()
-		print "- {0} unos (iter: {1}/{2}, number: {3})".format(len(table_uno), i+1, iters, maxim)
-		# write_file(table_all, ncolumns, nrows)
+		lc = not lc
+		cond_dos()		
+		i += 1
+		test = count_one()
+		if i == iters:
+			print "- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(test, i, iters, maxim, int(time.time() - start_time))
+			break
+		print "- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(test, i, iters, maxim, int(time.time() - start_time))
+		
+	lc = False
+	cond_dos()
+	print "- {0} unos - {1} seg".format(count_one(), int(time.time() - start_time))
 
 	write_file(table_all, ncolumns, nrows)
 
