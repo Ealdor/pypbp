@@ -47,34 +47,48 @@ i = 0
 
 visited = []
 
-lc = False
+lc = True
+
+def euclide(dire, dire2):
+	return abs( int(round(math.sqrt( (dire[0] - dire2[0])**2 + (dire[1] - dire2[1])**2 ))))
 
 def findfinal(dire, ini, allini):
 	global fails
 
-	if abs( math.sqrt( (dire[0] - allini.get('conn')[-1][0])**2 + (dire[1] - allini.get('conn')[-1][1])**2 )) > len(allini.get('conn')):
+	if euclide(dire, allini.get('conn')[-1]) > len(allini.get('conn')):
 		return False
 	elif dire[0] >= 0 and dire[1] >= 0 and dire[0] <= ncolumns and dire[1] <= nrows:
 		for x in table_all:
 			for y in x:
 				if lc:
 					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') not in visited[0:-1]:
-						fails +=1
 
 						# si el fallo es debido a llegar a uno que no es su pareja original
-						# ver 
-						
+						if y.get('posicion') != allini.get('conn')[-1]:
+							if y.get('c') == True:
+								if euclide(y.get('conn')[-1], allini.get('conn')[-1]) >= len(allini.get('conn')):
+									fails += 0
+								else:
+									fails += 1
+							else:
+								if len(y.get('conn')) > 0 and euclide(y.get('conn')[0], allini.get('conn')[-1]) >= len(allini.get('conn')):
+									fails += 0
+								else:
+									fails += 1
+						elif y.get('posicion') == allini.get('conn')[-1]:
+							fails += 1
+
 						if fails == 2:
 							return True
 				else:
-					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') == allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
-						fails +=1
+					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') == allini.get('conn')[-1]:# and y.get('posicion') not in visited[0:-1]:
+						fails += 1
 						if fails == 2:
 							return True
 	return False
 
 def find(dire, ini, allini):
-	if abs( math.sqrt( (dire[0] - allini.get('conn')[-1][0])**2 + (dire[1] - allini.get('conn')[-1][1])**2 )) > len(allini.get('conn')):
+	if euclide(dire, allini.get('conn')[-1]) > len(allini.get('conn')):
 		return []
 	elif dire[0] >= 0 and dire[1] >= 0 and dire[0] <= ncolumns and dire[1] <= nrows:
 		for x in table_all:
@@ -224,7 +238,8 @@ def way_mov(ini, allini):
 					if findfinal(dire2, ini, allini): visited = []; return True
 				visited.pop()
 		else:
-			if findfinal(dire, ini, allini): visited = []; return True
+			if findfinal(dire, ini, allini): 
+				visited = []; return True
 		visited.pop()
 
 	visited = []
@@ -247,22 +262,15 @@ def cond_dos():
 			else:
 				print '\rBuscando y corrigiendo posibles duplicaciones: {0}%'.format(porcent/((len(table_all)*len(x))/100)),
 			sys.stdout.flush()
-			if len(y.get('conn')) > 0:
+			if len(y.get('conn')) > 0 and y.get('c') == True:
 				if way_mov(y.get('posicion'), y):
-					pos = y.get('posicion')
 					con = y.get('conn')
 					for w in con:
 						aux.append(w)
-			# elif y.get('number') > 0 and y.get('number') < maxim:
-			# 	con = y.get('conn')
-			# 	for w in con:
-			# 		aux.append(w)
-
-	for w in aux:
-		table_all[w[0]][w[1]]['number'] = 1
-		table_all[w[0]][w[1]]['conn'] = []
-
-	table_uno = aux
+						table_all[w[0]][w[1]]['number'] = 1
+						table_all[w[0]][w[1]]['conn'] = []
+						table_all[w[0]][w[1]]['c'] = False
+						table_all[w[0]][w[1]]['ps'] = 1
 
 def random_dir(pstart):
 
@@ -326,10 +334,14 @@ def step_one():
 							if change == y[key]:
 								if changes[0] == y[key] or changes[-1] == y[key]:
 									y['number'] = len(changes)
+									y['conn'] = changes
 									if changes[0] == y[key]:
-										y['conn'] = changes
+										y['c'] = True
+
 								else:
 									y['number'] = -1 # para indicar la solucion correcta
+									y['c'] = False
+									y['conn'] = []
 								y['ps'] = len(changes)
 
 def write_file(table_all, ncolumns, nrows):
@@ -344,15 +356,16 @@ def write_file(table_all, ncolumns, nrows):
 			else: f.write(',')
 
 def count_one():
-	global table_uno
+	global table_uno, table_all
+
+	table_uno = []
 
 	j = 0
 	for x in table_all:
 		for y in x:
-			if y['number'] == 1:
+			if y.get('number') == 1:
 				j+= 1
-				if y['posicion'] not in table_uno:
-					table_uno.append((y,x))
+				table_uno.append(y.get('posicion'))
 	return j
 
 if __name__ == "__main__":
@@ -366,7 +379,7 @@ if __name__ == "__main__":
 		f = open(sys.argv[1], 'r')
 	except IOError:
 		print "File not found"
-		sys,exit()
+		sys.exit()
 
 	typef = sys.argv[1].split('.')[1]
 	maxim = int(sys.argv[2])
@@ -390,8 +403,8 @@ if __name__ == "__main__":
 				tn = int(string.split(num.pop(0), ',')[0])
 				if tn == 0:
 					table_all[y][x] = {'number': 0, 'posicion': (y, x), 'conn': [], 'ps': 0}
-				else:
-					table_all[y][x] = {'number': 1, 'posicion': (y, x), 'conn': [], 'ps': 0}
+				elif tn == 1:
+					table_all[y][x] = {'number': 1, 'posicion': (y, x), 'conn': [], 'ps': 1, 'c': False}
 					table_uno.append((y, x))
 	
 	print "== Paso 1: Generando puzzle y asegurando solución única =="
@@ -407,6 +420,10 @@ if __name__ == "__main__":
 			break
 		print "- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(test, i, iters, maxim, int(time.time() - start_time))
 		
+	print "== Paso 2: Ultima comprobación =="
+	lc = True
+	cond_dos()
+	print "- {0} unos - {1} seg".format(count_one(), int(time.time() - start_time))
 	lc = False
 	cond_dos()
 	print "- {0} unos - {1} seg".format(count_one(), int(time.time() - start_time))
