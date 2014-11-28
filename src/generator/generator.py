@@ -26,7 +26,7 @@
 		- Por cada fallo volver al paso 1 (menos el número problemático). Si no hay fallos se ha terminado.
 	USE: python new_generator.py <file_path> <maxim> <iters>
 		- maxim: max length number (1 - 21).
-		- iters: number of iterations per number. High number means more complexity but more time to generate the puzzle (a good value is 10).
+		- iters: number of iterations per number. High number means more complexity but more time to generate the puzzle (a good value is 20 or so).
 	'''
 
 import sys
@@ -56,12 +56,11 @@ def euclide(dire, dire2):
 def findfinal(dire, ini, allini):
 	global fails
 
-	if True:
+	if dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
 		for x in table_all:
 			for y in x:
 				if lc or llc:
 					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') not in visited[0:-1]:
-
 						# si el fallo es debido a llegar a uno que no es su pareja original
 						if y.get('posicion') != allini.get('conn')[-1]:
 							if y.get('c') == True:
@@ -87,7 +86,7 @@ def findfinal(dire, ini, allini):
 	return False
 
 def find(dire, ini, allini):
-	if True:
+	if dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
 		for x in table_all:
 			for y in x:
 				if lc:
@@ -264,7 +263,7 @@ def cond_dos():
 				try: print '\rBuscando y corrigiendo posibles fallos (condición 3): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
 				except: print '\rBuscando y corrigiendo posibles fallos (condición 3): 100%'
 			sys.stdout.flush()
-			if len(y.get('conn')) > 0 and y.get('c') == True:
+			if len(y.get('conn')) >= maxim and y.get('c') == True:
 				if way_mov(y.get('posicion'), y):
 					con = y.get('conn')
 					for w in con:
@@ -273,6 +272,14 @@ def cond_dos():
 						table_all[w[0]][w[1]]['conn'] = []
 						table_all[w[0]][w[1]]['c'] = False
 						table_all[w[0]][w[1]]['ps'] = 1
+			elif y.get('number') > 0 and y.get('number') < maxim:
+				con = y.get('conn')
+				for w in con:
+					aux.append(w)
+					table_all[w[0]][w[1]]['number'] = 1
+					table_all[w[0]][w[1]]['conn'] = []
+					table_all[w[0]][w[1]]['c'] = False
+					table_all[w[0]][w[1]]['ps'] = 1
 
 def random_dir(pstart):
 
@@ -409,29 +416,39 @@ if __name__ == "__main__":
 					table_all[y][x] = {'number': 1, 'posicion': (y, x), 'conn': [], 'ps': 1, 'c': False}
 					table_uno.append((y, x))
 	
-	print "== Paso 1: Generando puzzle y asegurando solución única =="
+	print "== Generando puzzle y asegurando solución única =="
 	while True:
+		if maxim == 1:
+			break
+
 		i += 1
+
 		step_one()
 
 		lc = False
 		llc = False
+		# usando ceros o posiciones de su camino conseguir llegar a su pareja mas de una vez.
 		cond_dos()
 		print "\r- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time)),
 		
 		lc = True
 		llc = False
 		cond_dos()
+		# usando -unos o posiciones cuyo inicio sea del mismo numero conseguir llegar a un numero que no sea su pareja original y que sea posible conectar ambas parejas
 		print "- \r{0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time)),
 
 		lc = False
 		llc = True
 		cond_dos()
+		# usando ceros o posiciones de su camino llegar a un numero que no sea su pareja original y que sea posible conectar ambas parejas 
+		print "- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time))
 
 		if i == iters:
-			print "- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time))
-			break
-		print "- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time))
+			maxim -= 1
+			i = 0
+
+	print "== Resumen =="
+	print "Total de unos: {0} - Tiempo: {1} seg".format(count_one(), int(time.time() - start_time))
 
 	write_file(table_all, ncolumns, nrows)
 
