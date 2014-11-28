@@ -48,6 +48,7 @@ i = 0
 visited = []
 
 lc = True
+llc = True
 
 def euclide(dire, dire2):
 	return abs( int(round(math.sqrt( (dire[0] - dire2[0])**2 + (dire[1] - dire2[1])**2 ))))
@@ -55,12 +56,10 @@ def euclide(dire, dire2):
 def findfinal(dire, ini, allini):
 	global fails
 
-	if euclide(dire, allini.get('conn')[-1]) > len(allini.get('conn')):
-		return False
-	elif dire[0] >= 0 and dire[1] >= 0 and dire[0] <= ncolumns and dire[1] <= nrows:
+	if True:
 		for x in table_all:
 			for y in x:
-				if lc:
+				if lc or llc:
 					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') not in visited[0:-1]:
 
 						# si el fallo es debido a llegar a uno que no es su pareja original
@@ -80,23 +79,21 @@ def findfinal(dire, ini, allini):
 
 						if fails == 2:
 							return True
-				else:
-					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') == allini.get('conn')[-1]:# and y.get('posicion') not in visited[0:-1]:
+				elif not lc:
+					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') == allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						fails += 1
 						if fails == 2:
 							return True
 	return False
 
 def find(dire, ini, allini):
-	if euclide(dire, allini.get('conn')[-1]) > len(allini.get('conn')):
-		return []
-	elif dire[0] >= 0 and dire[1] >= 0 and dire[0] <= ncolumns and dire[1] <= nrows:
+	if True:
 		for x in table_all:
 			for y in x:
 				if lc:
 					if y.get('posicion') == dire and y.get('number') == -1 and y.get('ps') == allini.get('ps') and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
-				else:
+				elif not lc or llc:
 					if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
 	return []
@@ -257,10 +254,15 @@ def cond_dos():
 	for x in table_all:
 		for y in x:
 			porcent += 1
-			if not lc:
-				print '\rBuscando y corrigiendo posibles fallos: {0}%'.format(porcent/((len(table_all)*len(x))/100)),
-			else:
-				print '\rBuscando y corrigiendo posibles duplicaciones: {0}%'.format(porcent/((len(table_all)*len(x))/100)),
+			if not lc and not llc:
+				try: print '\rBuscando y corrigiendo posibles fallos (condición 1): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
+				except: print '\rBuscando y corrigiendo posibles fallos (condición 1): 100%'
+			elif lc and not llc:
+				try: print '\rBuscando y corrigiendo posibles fallos (condición 2): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
+				except: print '\rBuscando y corrigiendo posibles fallos (condición 2): 100%'
+			elif llc:
+				try: print '\rBuscando y corrigiendo posibles fallos (condición 3): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
+				except: print '\rBuscando y corrigiendo posibles fallos (condición 3): 100%'
 			sys.stdout.flush()
 			if len(y.get('conn')) > 0 and y.get('c') == True:
 				if way_mov(y.get('posicion'), y):
@@ -408,25 +410,28 @@ if __name__ == "__main__":
 					table_uno.append((y, x))
 	
 	print "== Paso 1: Generando puzzle y asegurando solución única =="
-	test = 0
 	while True:
-		step_one()
-		lc = not lc
-		cond_dos()		
 		i += 1
-		test = count_one()
-		if i == iters:
-			print "- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(test, i, iters, maxim, int(time.time() - start_time))
-			break
-		print "- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(test, i, iters, maxim, int(time.time() - start_time))
+		step_one()
+
+		lc = False
+		llc = False
+		cond_dos()
+		print "\r- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time)),
 		
-	print "== Paso 2: Ultima comprobación =="
-	lc = True
-	cond_dos()
-	print "- {0} unos - {1} seg".format(count_one(), int(time.time() - start_time))
-	lc = False
-	cond_dos()
-	print "- {0} unos - {1} seg".format(count_one(), int(time.time() - start_time))
+		lc = True
+		llc = False
+		cond_dos()
+		print "- \r{0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time)),
+
+		lc = False
+		llc = True
+		cond_dos()
+
+		if i == iters:
+			print "- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time))
+			break
+		print "- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time))
 
 	write_file(table_all, ncolumns, nrows)
 
