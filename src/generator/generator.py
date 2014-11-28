@@ -26,7 +26,7 @@
 		- Por cada fallo volver al paso 1 (menos el número problemático). Si no hay fallos se ha terminado.
 	USE: python new_generator.py <file_path> <maxim> <iters>
 		- maxim: max length number (1 - 21).
-		- iters: number of iterations per number. High number means more complexity but more time to generate the puzzle (a good value is 20 or so).
+		- iters: number of iterations per number. High number means more complexity but more time to generate the puzzle (a good value is 10 or so).
 	'''
 
 import sys
@@ -86,7 +86,9 @@ def findfinal(dire, ini, allini):
 	return False
 
 def find(dire, ini, allini):
-	if dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
+	if not lc and not llc and euclide(dire, allini.get('conn')[-1]) >= len(allini.get('conn')) - len(visited):
+		return []
+	elif dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
 		for x in table_all:
 			for y in x:
 				if lc:
