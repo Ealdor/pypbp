@@ -32,7 +32,7 @@ To use the generator:
 
 Where:
 * maxim: max length number (1 - 21).
-* iters: number of iterations per number. Higher number means more complexity but more time to generate the puzzle (a good value is 20 or so).
+* iters: number of iterations per number. Higher number means more complexity but more time to generate the puzzle (a good value is 10 or so).
 
 > python generator.py gentestconv_20x20.csv 21 10
 
