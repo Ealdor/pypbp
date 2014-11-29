@@ -17,6 +17,8 @@
 ##    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
+''' Casi perfecto pero mas complejo '''
+
 ''' Lógica del generador:
 		- Elegir pixel aleatorio del archivo que este libre (no haya camino definido) y sea un numero distinto de cero.
 		- Elegir aleatoriamente dirección libre y no marcada (no haya sido elegida para este camino antes).
