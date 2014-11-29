@@ -17,19 +17,30 @@
 ##    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
-''' Casi perfecto pero mas complejo '''
-
 ''' Lógica del generador:
 		- Elegir pixel aleatorio del archivo que este libre (no haya camino definido) y sea un numero distinto de cero.
 		- Elegir aleatoriamente dirección libre y no marcada (no haya sido elegida para este camino antes).
 		- Comprobar si el puzzle está bien generado:
-				- COND1: si desde un número se llega a uno igual (sin ser pareja) y desde la pareja del último se llega al primero.
-				- COND2: si mediante cuandros blancos hay mas de un camino posible desde un número a su pareja.
-		- Por cada fallo volver al paso 1 (menos el número problemático). Si no hay fallos se ha terminado.
-	USE: python new_generator.py <file_path> <maxim> <iters>
-		- maxim: max length number (1 - 21).
-		- iters: number of iterations per number. High number means more complexity but more time to generate the puzzle (a good value is 10 or so).
-	'''
+			- Condición 1: si hay mas de un camino posible desde un número a su pareja.
+				 3 -1
+				 0  3
+			- Condición 2: si desde un número se llega a uno igual (sin ser pareja) y desde la pareja del último se llega a la pareja del primero. Usando cuadros usados cuyo numero inicial sea igual.
+				 4 -1 -1  4
+				 4 -1 -1  4
+			- Condición 3: si desde un número se llega a uno igual (sin ser pareja) y desde la pareja del último se llega a la pareja del primero. Usando cuadros libres o los de su camino.
+				 3  0  3
+				-1  0 -1
+				 3  0  3
+		- Meter los fallos en el listado de unos y volver a generar sobre la lista de unos.
+	
+	USO: python new_generator.py <file_path> <maxim> <iters>
+		- file_path: ruta hacia el archivo csv.
+		- maxim: numero maximo que aparecerá en el puzzle (1 - 21 incluido).
+		- iters: número de iteraciones por número. Contra mas alto mas complejo será el puzzle resultante pero mas tiempo para la generación:
+			- El tiempo de generación depende mucho del numero maximo usado, del tamaño del puzzle y del numero de ceros.
+			- Un buen número de iteraciones es entre 1 y 5.
+
+	El archivo resultante es temp.csv (dentro del directorio del generador). '''
 
 import sys
 import pygame
@@ -61,7 +72,7 @@ def findfinal(dire, ini, allini):
 	if dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
 		for x in table_all:
 			for y in x:
-				if lc or llc:
+				if lc or llc: # condición 2 y 3
 					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') not in visited[0:-1]:
 						# si el fallo es debido a llegar a uno que no es su pareja original
 						if y.get('posicion') != allini.get('conn')[-1]:
@@ -80,7 +91,7 @@ def findfinal(dire, ini, allini):
 
 						if fails == 2:
 							return True
-				elif not lc:
+				elif not lc: # condición 1
 					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') == allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						fails += 1
 						if fails == 2:
@@ -93,11 +104,14 @@ def find(dire, ini, allini):
 	elif dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
 		for x in table_all:
 			for y in x:
-				if lc:
+				if lc: # condición 2
 					if y.get('posicion') == dire and y.get('number') == -1 and y.get('ps') == allini.get('ps') and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
-				elif not lc or llc:
+				elif llc: # condición 3
 					if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
+						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
+				else: # condición 1
+					if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn') or y.get('number') == -1) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
 	return []
 

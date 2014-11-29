@@ -17,7 +17,7 @@
 ##    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
-''' Perfecto pero menos interesante '''
+''' Casi perfecto pero mas complejo '''
 
 ''' Lógica del generador:
 		- Elegir pixel aleatorio del archivo que este libre (no haya camino definido) y sea un numero distinto de cero.
@@ -50,6 +50,7 @@ i = 0
 visited = []
 
 lc = True
+llc = True
 
 def euclide(dire, dire2):
 	return abs( int(round(math.sqrt( (dire[0] - dire2[0])**2 + (dire[1] - dire2[1])**2 ))))
@@ -60,12 +61,12 @@ def findfinal(dire, ini, allini):
 	if dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
 		for x in table_all:
 			for y in x:
-				if lc:
+				if lc or llc:
 					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') not in visited[0:-1]:
 						# si el fallo es debido a llegar a uno que no es su pareja original
 						if y.get('posicion') != allini.get('conn')[-1]:
 							if y.get('c') == True:
-								if not euclide(y.get('conn')[-1], allini.get('conn')[-1]) >= len(allini.get('conn')):
+								if euclide(y.get('conn')[-1], allini.get('conn')[-1]) >= len(allini.get('conn')):
 									fails += 0
 								else:
 									fails += 1
@@ -79,7 +80,7 @@ def findfinal(dire, ini, allini):
 
 						if fails == 2:
 							return True
-				else:
+				elif not lc:
 					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') == allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						fails += 1
 						if fails == 2:
@@ -87,16 +88,19 @@ def findfinal(dire, ini, allini):
 	return False
 
 def find(dire, ini, allini):
-	if not lc and euclide(dire, allini.get('conn')[-1]) >= len(allini.get('conn')) - len(visited):
+	if not lc and not llc and euclide(dire, allini.get('conn')[-1]) >= len(allini.get('conn')) - len(visited):
 		return []
-	if dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
+	elif dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
 		for x in table_all:
 			for y in x:
 				if lc:
-					if y.get('posicion') == dire and ((y.get('number') == -1 and y.get('ps') == allini.get('ps')) or y.get('number') == 0) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
+					if y.get('posicion') == dire and y.get('number') == -1 and y.get('ps') == allini.get('ps') and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
+				elif llc:
+					if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
+						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
 				else:
-					if y.get('posicion') == dire and (y.get('number') == -1 or y.get('number') == 0) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
+					if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn') or y.get('number') == -1) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
 	return []
 
@@ -256,12 +260,15 @@ def cond_dos():
 	for x in table_all:
 		for y in x:
 			porcent += 1
-			if lc:
+			if not lc and not llc:
 				try: print '\rBuscando y corrigiendo posibles fallos (condición 1): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
 				except: print '\rBuscando y corrigiendo posibles fallos (condición 1): 100%'
-			else:
+			elif lc and not llc:
 				try: print '\rBuscando y corrigiendo posibles fallos (condición 2): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
 				except: print '\rBuscando y corrigiendo posibles fallos (condición 2): 100%'
+			elif llc:
+				try: print '\rBuscando y corrigiendo posibles fallos (condición 3): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
+				except: print '\rBuscando y corrigiendo posibles fallos (condición 3): 100%'
 			sys.stdout.flush()
 			if len(y.get('conn')) >= maxim and y.get('c') == True:
 				if way_mov(y.get('posicion'), y):
@@ -426,13 +433,21 @@ if __name__ == "__main__":
 		step_one()
 
 		lc = False
+		llc = False
 		# usando ceros o posiciones de su camino conseguir llegar a su pareja mas de una vez.
 		cond_dos()
 		print "\r- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time)),
 		
 		lc = True
+		llc = False
 		cond_dos()
 		# usando -unos o posiciones cuyo inicio sea del mismo numero conseguir llegar a un numero que no sea su pareja original y que sea posible conectar ambas parejas
+		print "- \r{0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time)),
+
+		lc = False
+		llc = True
+		cond_dos()
+		# usando ceros o posiciones de su camino llegar a un numero que no sea su pareja original y que sea posible conectar ambas parejas 
 		print "- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time))
 
 		if i == iters:
