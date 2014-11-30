@@ -17,19 +17,30 @@
 ##    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
-''' Casi perfecto pero mas complejo '''
-
 ''' Lógica del generador:
 		- Elegir pixel aleatorio del archivo que este libre (no haya camino definido) y sea un numero distinto de cero.
 		- Elegir aleatoriamente dirección libre y no marcada (no haya sido elegida para este camino antes).
 		- Comprobar si el puzzle está bien generado:
-				- COND1: si desde un número se llega a uno igual (sin ser pareja) y desde la pareja del último se llega al primero.
-				- COND2: si mediante cuandros blancos hay mas de un camino posible desde un número a su pareja.
-		- Por cada fallo volver al paso 1 (menos el número problemático). Si no hay fallos se ha terminado.
-	USE: python new_generator.py <file_path> <maxim> <iters>
-		- maxim: max length number (1 - 21).
-		- iters: number of iterations per number. High number means more complexity but more time to generate the puzzle (a good value is 10 or so).
-	'''
+			- Condición 1: si hay mas de un camino posible desde un número a su pareja.
+				 3 -1
+				 0  3
+			- Condición 2: si desde un número se llega a uno igual (sin ser pareja) y desde la pareja del último se llega a la pareja del primero. Usando cuadros usados cuyo numero inicial sea igual.
+				 4 -1 -1  4
+				 4 -1 -1  4
+			- Condición 3: si desde un número se llega a uno igual (sin ser pareja) y desde la pareja del último se llega a la pareja del primero. Usando cuadros libres o los de su camino.
+				 3  0  3
+				-1  0 -1
+				 3  0  3
+		- Meter los fallos en el listado de unos y volver a generar sobre la lista de unos.
+	
+	USO: python new_generator.py <file_path> <maxim> <iters>
+		- file_path: ruta hacia el archivo csv.
+		- maxim: numero maximo que aparecerá en el puzzle (1 - 21 incluido).
+		- iters: número de iteraciones por número. Contra mas alto mas complejo será el puzzle resultante pero mas tiempo para la generación:
+			- El tiempo de generación depende mucho del numero maximo usado, del tamaño del puzzle y del numero de ceros.
+			- Un buen número de iteraciones es entre 1 y 5.
+
+	El archivo resultante es temp.csv (dentro del directorio del generador). '''
 
 import sys
 import pygame
@@ -37,6 +48,7 @@ import string
 import random
 import math
 import time
+import json
 
 fails = 0
 table_uno = None
@@ -61,7 +73,7 @@ def findfinal(dire, ini, allini):
 	if dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
 		for x in table_all:
 			for y in x:
-				if lc or llc:
+				if lc or llc: # condición 2 y 3
 					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') not in visited[0:-1]:
 						# si el fallo es debido a llegar a uno que no es su pareja original
 						if y.get('posicion') != allini.get('conn')[-1]:
@@ -80,7 +92,7 @@ def findfinal(dire, ini, allini):
 
 						if fails == 2:
 							return True
-				elif not lc:
+				elif not lc: # condición 1
 					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') == allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						fails += 1
 						if fails == 2:
@@ -93,13 +105,13 @@ def find(dire, ini, allini):
 	elif dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
 		for x in table_all:
 			for y in x:
-				if lc:
+				if lc: # condición 2
 					if y.get('posicion') == dire and y.get('number') == -1 and y.get('ps') == allini.get('ps') and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
-				elif llc:
+				elif llc: # condición 3
 					if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
-				else:
+				else: # condición 1
 					if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn') or y.get('number') == -1) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
 	return []
@@ -288,20 +300,20 @@ def cond_dos():
 					table_all[w[0]][w[1]]['c'] = False
 					table_all[w[0]][w[1]]['ps'] = 1
 
-def random_dir(pstart):
+def random_dir(pstart, cstart):
 
 	global table_uno
 
 	mov = {'up': None, 'down': None, 'left': None, 'right': None}
 	
-	try: mov['up'] = table_uno.index((pstart[0], pstart[1]-1))
-	except: pass
-	try: mov['down'] = table_uno.index((pstart[0], pstart[1]+1))
-	except: pass
-	try: mov['left'] = table_uno.index((pstart[0]-1, pstart[1]))
-	except: pass
-	try: mov['right'] = table_uno.index((pstart[0]+1, pstart[1]))
-	except: pass	
+	if table_uno.get((pstart[0], pstart[1]-1)) == cstart:
+		mov['up'] = (pstart[0], pstart[1]-1)
+	if table_uno.get((pstart[0], pstart[1]+1)) == cstart:
+		mov['down'] = (pstart[0], pstart[1]+1)
+	if table_uno.get((pstart[0]-1, pstart[1])) == cstart:
+		mov['left'] = (pstart[0]-1, pstart[1])
+	if table_uno.get((pstart[0]+1, pstart[1])) == cstart:
+		mov['right'] = (pstart[0]+1, pstart[1])
 	
 	aux = mov.pop(random.choice(mov.keys()))
 	while aux == None and len(mov) > 0:
@@ -310,7 +322,7 @@ def random_dir(pstart):
 		aux = pstart
 	return aux
 
-def step_two(pstart):
+def step_two(pstart, cstart):
 	""" Elegir aleatoriamente dirección libre y no marcada (no haya sido elegida para este camino antes). """
 	
 	global table_uno
@@ -318,16 +330,16 @@ def step_two(pstart):
 	history = []
 	history.append(pstart)
 	
-	aux = random_dir(pstart)
+	aux = random_dir(pstart, cstart)
 
-	while aux != pstart and len(history) < maxim:
-		history.append(table_uno[aux])
-		pstart = table_uno[aux]
+	while aux != pstart and len(history) < maxim:	
+		history.append(aux)
+		pstart = aux
 		table_uno.pop(aux)
-		aux = random_dir(pstart)
+		aux = random_dir(pstart, cstart)
 		if aux == pstart:
 			break
-	
+
 	return history
 
 def step_one():
@@ -336,52 +348,55 @@ def step_one():
 	global table_all, table_uno
 
 	while len(table_uno) > 0:
-		ran = random.randint(0, len(table_uno)-1)
-		changes = step_two(table_uno.pop(ran))
+		ran = random.choice(table_uno.keys())
+		changes = step_two(ran, table_uno.pop(ran))
 		# changes = step_two(table_uno.pop())
 		print '\rGenerando puzzle: {0}'.format(len(table_uno)),
 		sys.stdout.flush()
-		
+
 		for change in changes:
 			for x in table_all:
 				for y in x:
-					for key in y:
-						if key == 'posicion':
-							if change == y[key]:
-								if changes[0] == y[key] or changes[-1] == y[key]:
-									y['number'] = len(changes)
-									y['conn'] = changes
-									if changes[0] == y[key]:
-										y['c'] = True
+					if y['posicion'] == change:
+						if changes[0] == y['posicion'] or changes[-1] == y['posicion']:
+							y['number'] = len(changes)
+							y['conn'] = changes
+							if changes[0] == y['posicion']:
+								y['c'] = True
 
-								else:
-									y['number'] = -1 # para indicar la solucion correcta
-									y['c'] = False
-									y['conn'] = []
-								y['ps'] = len(changes)
+						else:
+							y['number'] = -1 # para indicar la solucion correcta
+							y['c'] = False
+							y['conn'] = []
+						y['ps'] = len(changes)
 
 def write_file(table_all, ncolumns, nrows):
-	f = open("temp.csv", 'w')
+	f = open("temp.json", 'w')
+	rows = []
 	for x in xrange(0, nrows):
+		cols = []
 		for y in xrange(0, ncolumns):
-			if table_all[y][x].get('number') == -1:
-				f.write('0')
+			if table_all[y][x].get('number') == 0 or table_all[y][x].get('number') == -1:
+				color = [255, 255, 255]
+				number = 0
 			else:
-				f.write(str(table_all[y][x].get('number')))
-			if y == ncolumns-1: f.write('\n')
-			else: f.write(',')
+				color = table_all[y][x].get('color')
+				number = table_all[y][x].get('number')
+			cols.append({'color':{'r':color[0],'b':color[2],'g':color[1]},'number':number})
+		rows.append(cols)
+	json.dump(rows, f)
 
 def count_one():
 	global table_uno, table_all
 
-	table_uno = []
+	table_uno = {}
 
 	j = 0
 	for x in table_all:
 		for y in x:
 			if y.get('number') == 1:
 				j+= 1
-				table_uno.append(y.get('posicion'))
+				table_uno[y.get('posicion')] = y.get('color')
 	return j
 
 if __name__ == "__main__":
@@ -389,39 +404,42 @@ if __name__ == "__main__":
 	start_time = time.time()
 
 	table_all = []
-	table_uno = []
+	table_uno = {}
 
 	try:
 		f = open(sys.argv[1], 'r')
 	except IOError:
 		print "File not found"
-		sys.exit()
+		sys,exit()
 
 	typef = sys.argv[1].split('.')[1]
 	maxim = int(sys.argv[2])
 	iters = int(sys.argv[3])
 
 	# CONTEO DE COLUMNAS Y FILAS
-	if typef == 'csv':
+	if typef == 'json':
 		contador = 0
-		ncolumns = len(string.split(string.strip(f.readline()), ','))
-		f.seek(0)
-		for linea in f.xreadlines( ): contador+= 1
-		nrows = contador
-		f.seek(0)
+		data = json.load(f)
+		for row in xrange(len(data)):
+			for col in xrange(len(data[row])):
+				contador += 1
+			break
+		nrows = len(data)
+		ncolumns = contador
+	f.seek(0)
 
 	table_all = [[None for y in xrange(0, int(nrows))] for x in xrange(0, int(ncolumns))]
 
-	if typef == 'csv': # CSV
-		for x in xrange(0, int(nrows)):
-			num = string.split(string.strip(f.readline()), ',')
-			for y in xrange(0, int(ncolumns)):
-				tn = int(string.split(num.pop(0), ',')[0])
-				if tn == 0:
-					table_all[y][x] = {'number': 0, 'posicion': (y, x), 'conn': [], 'ps': 0}
-				elif tn == 1:
-					table_all[y][x] = {'number': 1, 'posicion': (y, x), 'conn': [], 'ps': 1, 'c': False}
-					table_uno.append((y, x))
+	if typef == 'json': # JSON
+		data = json.load(f)
+		for row in xrange(len(data)):
+			for col in xrange(len(data[row])):
+				value = data[row][col]["number"]
+				c = data[row][col]["color"]
+				colour = [c["r"], c["g"], c["b"]]
+				table_all[col][row] = {'number': value, 'posicion': (col, row), 'conn': [], 'ps': 1, 'c': False, 'color': colour}
+				if value > 0:
+					table_uno[(col, row)] = colour
 	
 	print "== Generando puzzle y asegurando solución única =="
 	while True:
