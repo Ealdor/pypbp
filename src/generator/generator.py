@@ -21,15 +21,12 @@
 		- Elegir pixel aleatorio del archivo que este libre (no haya camino definido) y sea un numero distinto de cero.
 		- Elegir aleatoriamente dirección libre y no marcada (no haya sido elegida para este camino antes).
 		- Comprobar si el puzzle está bien generado:
-			- Condición 1: si hay mas de un camino posible desde un número a su pareja.
-				 3 -1
-				 0  3
-			- Condición 2: si desde un número se llega a uno igual (sin ser pareja) y desde la pareja del último se llega a la pareja del primero. Usando cuadros usados cuyo numero inicial sea igual.
+			- Condición 1: si desde un número se llega a uno igual (sin ser pareja) y desde la pareja del último se llega a la pareja del primero. Usando cuadros usados cuyo numero inicial sea igual.
 				 4 -1 -1  4
 				 4 -1 -1  4
-			- Condición 3: si desde un número se llega a uno igual (sin ser pareja) y desde la pareja del último se llega a la pareja del primero. Usando cuadros libres o los de su camino.
-				 3  0  3
-				-1  0 -1
+			- Condición 2: si desde un número se llega a uno igual (sin ser pareja) y desde la pareja del último se llega a la pareja del primero. Usando cuadros libres o los de su camino.
+				 3  0  3	3 -1
+				-1  0 -1    0  3
 				 3  0  3
 		- Meter los fallos en el listado de unos y volver a generar sobre la lista de unos.
 	
@@ -91,17 +88,10 @@ def findfinal(dire, ini, allini):
 
 						if fails == 2:
 							return True
-				elif not lc: # condición 1
-					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') == allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
-						fails += 1
-						if fails == 2:
-							return True
 	return False
 
 def find(dire, ini, allini):
-	if not lc and not llc and euclide(dire, allini.get('conn')[-1]) >= len(allini.get('conn')) - len(visited):
-		return []
-	elif dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
+	if dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
 		for x in table_all:
 			for y in x:
 				if lc: # condición 2
@@ -109,9 +99,6 @@ def find(dire, ini, allini):
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
 				elif llc: # condición 3
 					if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
-						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
-				else: # condición 1
-					if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn') or y.get('number') == -1) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
 	return []
 
@@ -263,7 +250,7 @@ def way_mov(ini, allini):
 def cond_dos():
 	""" COND2: si mediante cuandros blancos o su propio camino hay mas de un camino posible desde un número a su pareja. """
 
-	global table_all, table_uno, maxim, i
+	global table_all
 
 	aux = []
 	porcent = 0
@@ -271,15 +258,12 @@ def cond_dos():
 	for x in table_all:
 		for y in x:
 			porcent += 1
-			if not lc and not llc:
+			if lc and not llc:
 				try: print '\rBuscando y corrigiendo posibles fallos (condición 1): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
 				except: print '\rBuscando y corrigiendo posibles fallos (condición 1): 100%'
-			elif lc and not llc:
+			elif llc:
 				try: print '\rBuscando y corrigiendo posibles fallos (condición 2): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
 				except: print '\rBuscando y corrigiendo posibles fallos (condición 2): 100%'
-			elif llc:
-				try: print '\rBuscando y corrigiendo posibles fallos (condición 3): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
-				except: print '\rBuscando y corrigiendo posibles fallos (condición 3): 100%'
 			sys.stdout.flush()
 			if len(y.get('conn')) >= maxim and y.get('c') == True:
 				if way_mov(y.get('posicion'), y):
@@ -356,20 +340,18 @@ def step_one():
 		for change in changes:
 			for x in table_all:
 				for y in x:
-					for key in y:
-						if key == 'posicion':
-							if change == y[key]:
-								if changes[0] == y[key] or changes[-1] == y[key]:
-									y['number'] = len(changes)
-									y['conn'] = changes
-									if changes[0] == y[key]:
-										y['c'] = True
+					if y['posicion'] == change:
+						if changes[0] == y['posicion'] or changes[-1] == y['posicion']:
+							y['number'] = len(changes)
+							y['conn'] = changes
+							if changes[0] == y['posicion']:
+								y['c'] = True
 
-								else:
-									y['number'] = -1 # para indicar la solucion correcta
-									y['c'] = False
-									y['conn'] = []
-								y['ps'] = len(changes)
+						else:
+							y['number'] = -1 # para indicar la solucion correcta
+							y['c'] = False
+							y['conn'] = []
+						y['ps'] = len(changes)
 
 def write_file(table_all, ncolumns, nrows):
 	f = open("temp.csv", 'w')
@@ -383,7 +365,7 @@ def write_file(table_all, ncolumns, nrows):
 			else: f.write(',')
 
 def count_one():
-	global table_uno, table_all
+	global table_uno
 
 	table_uno = []
 
@@ -442,12 +424,6 @@ if __name__ == "__main__":
 		i += 1
 
 		step_one()
-
-		lc = False
-		llc = False
-		# usando ceros o posiciones de su camino conseguir llegar a su pareja mas de una vez.
-		cond_dos()
-		print "\r- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time)),
 		
 		lc = True
 		llc = False
