@@ -71,7 +71,7 @@ def findfinal(dire, ini, allini):
 	if dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
 		for x in table_all:
 			for y in x:
-				if lc or llc: # condición 2 y 3
+				if lc or llc: # condición 1 y 2
 					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') not in visited[0:-1]:
 						# si el fallo es debido a llegar a uno que no es su pareja original
 						if y.get('posicion') != allini.get('conn')[-1]:
@@ -96,10 +96,10 @@ def find(dire, ini, allini):
 	if dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
 		for x in table_all:
 			for y in x:
-				if lc: # condición 2
+				if lc: # condición 1
 					if y.get('posicion') == dire and y.get('number') == -1 and y.get('ps') == allini.get('ps') and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
-				elif llc: # condición 3
+				elif llc: # condición 2
 					if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
 	return []
