@@ -31,13 +31,32 @@
 		- Meter los fallos en el listado de unos y volver a generar sobre la lista de unos.
 	
 	USO: python new_generator.py <file_path> <maxim> <iters>
-		- file_path: ruta hacia el archivo json.
+		- file_path: ruta hacia el archivo csv.
 		- maxim: numero maximo que aparecerá en el puzzle (1 - 21 incluido).
 		- iters: número de iteraciones por número. Contra mas alto mas complejo será el puzzle resultante pero mas tiempo para la generación:
 			- El tiempo de generación depende mucho del numero maximo usado, del tamaño del puzzle y del numero de ceros.
 			- Un buen número de iteraciones es entre 1 y 5.
 
-	El archivo resultante es temp.json (dentro del directorio del generador). '''
+	El archivo resultante es temp.csv (dentro del directorio del generador). '''
+
+''' 1.- Meter en una lista (test) todas las parejas de table_all que cumplan:
+	- number > 5
+	- c == True
+	- distinto de el mismo.
+
+	2.- Por cada elemento de la lista test aplicarle con_dos():
+		- funcion find():
+			- posicion == dire Y
+			- posicion en:
+				- sus conexiones O
+				- conexiones del otro
+		- funcion findfinal():
+			- posicion == dire Y 
+			- posicion en:
+				- ultimo elemento de sus conexiones -> fail + 1
+				- ultimo elemento de las conexiones del otro -> fail + 1
+				- si fail == 2 -> aplicarle con_dos() al otro:
+					- si fail del otro == 2 -> existe un fallo '''
 
 import sys
 import pygame
@@ -45,6 +64,7 @@ import string
 import random
 import math
 import time
+import pickle
 import json
 
 fails = 0
@@ -57,6 +77,7 @@ iters = 0
 i = 0
 
 visited = []
+destiny = None
 
 lc = True
 llc = True
@@ -74,7 +95,7 @@ def findfinal(dire, ini, allini):
 				if lc or llc: # condición 1 y 2
 					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') not in visited[0:-1]:
 						# si el fallo es debido a llegar a uno que no es su pareja original
-						if y.get('posicion') != allini.get('conn')[-1]:
+						if y.get('posicion') != allini.get('conn')[-1] and y.get('color') == allini.get('color'):
 							if y.get('c') == True:
 								if euclide(y.get('conn')[-1], allini.get('conn')[-1]) >= len(allini.get('conn')):
 									fails += 0
@@ -90,6 +111,12 @@ def findfinal(dire, ini, allini):
 
 						if fails == 2:
 							return True
+				elif lllc:
+					if dire == y.get('posicion'):
+						if y.get('posicion') == allini.get('conn')[-1]:
+							fails += 1
+						if fails == 2:
+							return True
 	return False
 
 def find(dire, ini, allini):
@@ -97,11 +124,14 @@ def find(dire, ini, allini):
 		for x in table_all:
 			for y in x:
 				if lc: # condición 1
-					if y.get('posicion') == dire and y.get('number') == -1 and y.get('ps') == allini.get('ps') and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
+					if y.get('posicion') == dire and y.get('color') == allini.get('color') and y.get('number') == -1 and y.get('ps') == allini.get('ps') and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
 				elif llc: # condición 2
 					if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
 						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
+				elif lllc:
+					if dire == y.get('posicion') and y.get('color') == allini.get('color') and (y.get('posicion') in allini.get('conn') or y.get('posicion') in destiny.get('conn')) and y.get('posicion') not in visited[0:-1] and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') != destiny.get('conn')[-1]:
+						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
 	return []
 
 def way_mov(ini, allini):
@@ -252,38 +282,67 @@ def way_mov(ini, allini):
 def cond_dos():
 	""" COND2: si mediante cuandros blancos o su propio camino hay mas de un camino posible desde un número a su pareja. """
 
-	global table_all
+	global table_all, destiny
 
-	aux = []
 	porcent = 0
 
-	for x in table_all:
-		for y in x:
+	if lllc:
+		table_aux = []
+		for x in table_all:
+			for y in x:
+				sys.stdout.flush()
+				if y.get('number') >= 6 and y.get('c') == True:
+					for w in table_all:
+						for z in w:
+							if z.get('color') == y.get('color') and y != z and z.get('number') >= 6 and z.get('c') == True and ((y,z) not in table_aux and (z,y) not in table_aux):
+								table_aux.append((y,z))
+
+		for x in table_aux:
 			porcent += 1
-			if lc and not llc:
-				try: print '\rBuscando y corrigiendo posibles fallos (condición 1): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
-				except: print '\rBuscando y corrigiendo posibles fallos (condición 1): 100%'
-			elif llc:
-				try: print '\rBuscando y corrigiendo posibles fallos (condición 2): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
-				except: print '\rBuscando y corrigiendo posibles fallos (condición 2): 100%'
+			try: print "\rBuscando y corrigiendo posibles fallos (condición 3): {0}%".format(porcent/((len(table_aux))/100)),
+			except: print '\rBuscando y corrigiendo posibles fallos (condición 3): 100%',
 			sys.stdout.flush()
-			if len(y.get('conn')) >= maxim and y.get('c') == True:
-				if way_mov(y.get('posicion'), y):
+			if len(x[0].get('conn')) > 0 and len(x[1].get('conn')) > 0:
+				destiny = x[1]
+				if way_mov(x[0].get('posicion'), x[0]):
+					destiny = x[0]
+					if way_mov(x[1].get('posicion'), x[1]):
+						if x[0].get('number') > x[1].get('number'):
+							con = x[1].get('conn')
+						else:
+							con = x[0].get('conn')
+						for w in con:
+							table_all[w[0]][w[1]]['number'] = 1
+							table_all[w[0]][w[1]]['conn'] = []
+							table_all[w[0]][w[1]]['c'] = False
+							table_all[w[0]][w[1]]['ps'] = 1
+
+	else:
+		for x in table_all:
+			for y in x:
+				porcent += 1
+				if lc and not llc:
+					try: print '\rBuscando y corrigiendo posibles fallos (condición 1): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
+					except: print '\rBuscando y corrigiendo posibles fallos (condición 1): 100%'
+				elif llc:
+					try: print '\rBuscando y corrigiendo posibles fallos (condición 2): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
+					except: print '\rBuscando y corrigiendo posibles fallos (condición 2): 100%'
+				sys.stdout.flush()
+				if len(y.get('conn')) >= maxim and y.get('c') == True:
+					if way_mov(y.get('posicion'), y):
+						con = y.get('conn')
+						for w in con:
+							table_all[w[0]][w[1]]['number'] = 1
+							table_all[w[0]][w[1]]['conn'] = []
+							table_all[w[0]][w[1]]['c'] = False
+							table_all[w[0]][w[1]]['ps'] = 1
+				elif y.get('number') > 0 and y.get('number') < maxim:
 					con = y.get('conn')
 					for w in con:
-						aux.append(w)
 						table_all[w[0]][w[1]]['number'] = 1
 						table_all[w[0]][w[1]]['conn'] = []
 						table_all[w[0]][w[1]]['c'] = False
 						table_all[w[0]][w[1]]['ps'] = 1
-			elif y.get('number') > 0 and y.get('number') < maxim:
-				con = y.get('conn')
-				for w in con:
-					aux.append(w)
-					table_all[w[0]][w[1]]['number'] = 1
-					table_all[w[0]][w[1]]['conn'] = []
-					table_all[w[0]][w[1]]['c'] = False
-					table_all[w[0]][w[1]]['ps'] = 1
 
 def random_dir(pstart, cstart):
 
@@ -371,6 +430,9 @@ def write_file(table_all, ncolumns, nrows):
 		rows.append(cols)
 	json.dump(rows, f)
 
+	with open("temp_color.pickle", 'wb') as f:
+		pickle.dump(table_all, f)
+
 def count_one():
 	global table_uno
 
@@ -437,14 +499,21 @@ if __name__ == "__main__":
 		
 		lc = True
 		llc = False
+		lllc = False
 		cond_dos()
-		# usando -unos o posiciones cuyo inicio sea del mismo numero conseguir llegar a un numero que no sea su pareja original y que sea posible conectar ambas parejas
-		print "- \r{0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time)),
+		print "\r",
+
+		lc = False
+		llc = False
+		lllc = True
+		cond_dos()
+		print "\r",
 
 		lc = False
 		llc = True
+		lllc = False
 		cond_dos()
-		# usando ceros o posiciones de su camino llegar a un numero que no sea su pareja original y que sea posible conectar ambas parejas 
+		
 		print "- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time))
 
 		if i == iters:
