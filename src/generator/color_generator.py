@@ -290,7 +290,6 @@ def cond_dos():
 		table_aux = []
 		for x in table_all:
 			for y in x:
-				sys.stdout.flush()
 				if y.get('number') >= 6 and y.get('c') == True:
 					for w in table_all:
 						for z in w:
@@ -299,8 +298,7 @@ def cond_dos():
 
 		for x in table_aux:
 			porcent += 1
-			try: print "\rBuscando y corrigiendo posibles fallos (condición 3): {0}%".format(porcent/((len(table_aux))/100)),
-			except: print '\rBuscando y corrigiendo posibles fallos (condición 3): 100%',
+			print "\rBuscando y corrigiendo posibles fallos (condición 3): {0}/{1}".format(porcent, len(table_aux)),
 			sys.stdout.flush()
 			if len(x[0].get('conn')) > 0 and len(x[1].get('conn')) > 0:
 				destiny = x[1]
@@ -322,11 +320,9 @@ def cond_dos():
 			for y in x:
 				porcent += 1
 				if lc and not llc:
-					try: print '\rBuscando y corrigiendo posibles fallos (condición 1): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
-					except: print '\rBuscando y corrigiendo posibles fallos (condición 1): 100%'
+					print '\rBuscando y corrigiendo posibles fallos (condición 1): {0}/{1}'.format(porcent, len(table_all)*len(x)),
 				elif llc:
-					try: print '\rBuscando y corrigiendo posibles fallos (condición 2): {0}%'.format(porcent/((len(table_all)*len(x))/100)),
-					except: print '\rBuscando y corrigiendo posibles fallos (condición 2): 100%'
+					print '\rBuscando y corrigiendo posibles fallos (condición 2): {0}/{1}'.format(porcent, len(table_all)*len(x)),
 				sys.stdout.flush()
 				if len(y.get('conn')) >= maxim and y.get('c') == True:
 					if way_mov(y.get('posicion'), y):
@@ -501,13 +497,12 @@ if __name__ == "__main__":
 		llc = False
 		lllc = False
 		cond_dos()
-		print "\r",
 
-		lc = False
-		llc = False
-		lllc = True
-		cond_dos()
-		print "\r",
+		if maxim >= 6:
+			lc = False
+			llc = False
+			lllc = True
+			cond_dos()
 
 		lc = False
 		llc = True
