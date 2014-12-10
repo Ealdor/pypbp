@@ -23,7 +23,6 @@ import string
 import generator
 import time
 import utils
-import sys
 
 class Application(tk.Frame):
 	def __init__(self, master=None):
@@ -82,10 +81,10 @@ class Application(tk.Frame):
 		self.nameLabel = tk.Label(self.genLabel, textvariable = self.name, justify = tk.LEFT, width = 50)
 		self.nameLabel.grid(sticky = tk.NW, padx = 10, column = 0, row = 0, columnspan = 2)
 		# Botón generar
-		self.startButton = tk.Button(self.genLabel, text = 'Empezar', command = self.start)
+		self.startButton = tk.Button(self.genLabel, text = 'Empezar', command = self.start, state = "disabled")
 		self.startButton.grid(sticky = tk.W+tk.E, padx = 10, column = 0, row = 1, pady = 0)
 		# Botón cancelar
-		self.cancelButton = tk.Button(self.genLabel, text = 'Cancelar', command = self.cancel)
+		self.cancelButton = tk.Button(self.genLabel, text = 'Cancelar', command = self.cancel, state = "disabled")
 		self.cancelButton.grid(sticky = tk.W+tk.E, padx = 10, column = 1, row = 1, pady = 0)
 		# Label estado
 		self.statusLabel = tk.Label(self.genLabel, textvariable = self.status, justify = tk.LEFT)
@@ -109,19 +108,29 @@ class Application(tk.Frame):
 
 	def popup(self):
 		self.completeName = tkFileDialog.askopenfilename(initialdir = "puzzles", filetypes = [("Bitmap", "*.csv"), ("Bitmap", "*.json")])
-		self.name.set("Puzzle: " + string.rsplit(self.completeName, "/")[-1])
-		if len(self.name.get()) >= 60:
-			self.name.set(self.name.get()[0:59] + "...")
+		if self.completeName != "":
+			self.startButton.config(state = 'normal')
+			self.name.set("Puzzle: " + string.rsplit(self.completeName, "/")[-1])
+			if len(self.name.get()) >= 60:
+				self.name.set(self.name.get()[0:59] + "...")
 
 	def start(self):
 		self.status.set("Estado: -")
 		self.leng.set("Iteración: -/- y Número: -/-")
 		self.totaltime.set("Tiempo total: -")
 		self.ones.set("Total de unos: -")
-		self.types.set("Tipo de puzzle: -")
+		self.types.set("Progreso: -")
+		self.startButton.config(state = 'disabled')
+		self.browseButton.config(state = 'disabled')
+		self.cancelButton.config(state = 'normal')
+		self.maxnumberSpinbox.config(state = 'disabled')
+		self.complexSpinbox.config(state = 'disabled')
 		if int(self.complexSpinbox.get()) in (1,2,3,4,5) and int(self.maxnumberSpinbox.get()) in (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21) and self.completeName != "":
 			start_time = time.time()
-			self.g = generator.Generator(self.maxnumberSpinbox.get(), self.complexSpinbox.get(), utils.read_file(self.completeName), self.cancelButton, self.types)
+			if self.name.get().split('.')[1] == 'csv':
+				self.g = generator.Generator(self.maxnumberSpinbox.get(), self.complexSpinbox.get(), utils.read_csv(self.completeName), self.cancelButton, self.types)
+			else:
+				self.g = generator.Generator(self.maxnumberSpinbox.get(), self.complexSpinbox.get(), utils.read_json(self.completeName), self.cancelButton, self.types)
 			self.g.count_one()
 			self.ones.set("Total de unos: {0}".format(len(self.g.table_uno)))
 			i = 0
@@ -146,12 +155,21 @@ class Application(tk.Frame):
 				if i == self.g.iters:
 					self.g.maxim -= 1
 					i = 0
-			utils.write_file(self.g.table_all)
+			if self.name.get().split('.')[1] == 'csv':
+				utils.write_csv(self.g.table_all)
+			else:
+				utils.write_json(self.g.table_all)
+
 			if self.g.cancel:
 				self.status.set("Estado: Cancelado")
 			else:
 				self.status.set("Estado: Completado")
 			self.g = None
+		self.startButton.config(state = 'normal')
+		self.browseButton.config(state = 'normal')
+		self.cancelButton.config(state = 'disabled')
+		self.maxnumberSpinbox.config(state = 'normal')
+		self.complexSpinbox.config(state = 'normal')
 
 	def cancel(self):
 		if self.g and not self.g.cancel: 

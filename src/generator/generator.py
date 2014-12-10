@@ -28,21 +28,13 @@
 				 3  0  3	3 -1
 				-1  0 -1    0  3
 				 3  0  3
-		- Meter los fallos en el listado de unos y volver a generar sobre la lista de unos.
-	
-	USO: python new_generator.py <file_path> <maxim> <iters>
-		- file_path: ruta hacia el archivo csv.
-		- maxim: numero maximo que aparecerá en el puzzle (1 - 21 incluido).
-		- iters: número de iteraciones por número. Contra mas alto mas complejo será el puzzle resultante pero mas tiempo para la generación:
-			- El tiempo de generación depende mucho del numero maximo usado, del tamaño del puzzle y del numero de ceros.
-			- Un buen número de iteraciones es entre 1 y 5.
+		- Meter los fallos en el listado de unos y volver a generar sobre la lista de unos. '''
 
-	El archivo resultante es temp.csv (dentro del directorio del generador). '''
-
-''' 1.- Meter en una lista (test) todas las parejas de table_all que cumplan:
-	- number > 5
-	- c == True
-	- distinto de el mismo.
+''' Condicion 3:
+	1.- Meter en una lista (test) todas las parejas de table_all que cumplan:
+		- number > 5
+		- c == True
+		- distinto de el mismo.
 
 	2.- Por cada elemento de la lista test aplicarle con_dos():
 		- funcion find():
@@ -72,7 +64,7 @@ class Generator():
 		self.maxim = int(maxim)
 		self.iters = int(iters)
 
-		self.table_uno = []
+		self.table_uno = {}
 		self.fails = 0
 		self.visited = []
 		self.destiny = None
@@ -89,7 +81,7 @@ class Generator():
 					if self.types == 1 or self.types == 2: # condición 1 y 2
 						if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') not in self.visited[0:-1]:
 							# si el fallo es debido a llegar a uno que no es su pareja original
-							if y.get('posicion') != allini.get('conn')[-1]:
+							if y.get('posicion') != allini.get('conn')[-1] and y.get('color') == allini.get('color'):
 								if y.get('c') == True:
 									if utils.euclide(y.get('conn')[-1], allini.get('conn')[-1]) >= len(allini.get('conn')):
 										self.fails += 0
@@ -121,13 +113,13 @@ class Generator():
 			for x in self.table_all:
 				for y in x:
 					if self.types == 1: # condición 1
-						if y.get('posicion') == dire and y.get('number') == -1 and y.get('ps') == allini.get('ps') and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in self.visited[0:-1]:
+						if y.get('posicion') == dire and y.get('color') == allini.get('color') and y.get('number') == -1 and y.get('ps') == allini.get('ps') and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in self.visited[0:-1]:
 							return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
 					elif self.types == 2: # condición 2
 						if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in self.visited[0:-1]:
 							return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
 					elif self.types == 3:
-						if dire == y.get('posicion') and (y.get('posicion') in allini.get('conn') or y.get('posicion') in self.destiny.get('conn')) and y.get('posicion') not in self.visited[0:-1] and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') != self.destiny.get('conn')[-1]:
+						if dire == y.get('posicion') and y.get('color') == allini.get('color') and (y.get('posicion') in allini.get('conn') or y.get('posicion') in self.destiny.get('conn')) and y.get('posicion') not in self.visited[0:-1] and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') != self.destiny.get('conn')[-1]:
 							return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
 		return []
 
@@ -276,7 +268,7 @@ class Generator():
 					if y.get('number') >= 6 and y.get('c') == True:
 						for w in self.table_all:
 							for z in w:
-								if y != z and z.get('number') >= 6 and z.get('c') == True and ((y,z) not in table_aux and (z,y) not in table_aux):
+								if z.get('color') == y.get('color') and y != z and z.get('number') >= 6 and z.get('c') == True and ((y,z) not in table_aux and (z,y) not in table_aux):
 									table_aux.append((y,z))
 
 			for x in table_aux:
@@ -303,13 +295,16 @@ class Generator():
 					porcent += 1
 					self.typ.set("Progreso: {0}/{1}".format(porcent, len(self.table_all)*len(x)))
 					if len(y.get('conn')) >= self.maxim and y.get('c') == True:
-						if self.way_mov(y.get('posicion'), y):
-							con = y.get('conn')
-							for w in con:
-								self.table_all[w[0]][w[1]]['number'] = 1
-								self.table_all[w[0]][w[1]]['conn'] = []
-								self.table_all[w[0]][w[1]]['c'] = False
-								self.table_all[w[0]][w[1]]['ps'] = 1
+
+						if (self.types == 2 and y.get('number') == self.maxim) or self.types == 1:
+
+							if self.way_mov(y.get('posicion'), y):
+								con = y.get('conn')
+								for w in con:
+									self.table_all[w[0]][w[1]]['number'] = 1
+									self.table_all[w[0]][w[1]]['conn'] = []
+									self.table_all[w[0]][w[1]]['c'] = False
+									self.table_all[w[0]][w[1]]['ps'] = 1
 					elif y.get('number') > 0 and y.get('number') < self.maxim:
 						con = y.get('conn')
 						for w in con:
@@ -318,17 +313,17 @@ class Generator():
 							self.table_all[w[0]][w[1]]['c'] = False
 							self.table_all[w[0]][w[1]]['ps'] = 1
 
-	def random_dir(self, pstart):
+	def random_dir(self, pstart, cstart):
 		mov = {'up': None, 'down': None, 'left': None, 'right': None}
 		
-		try: mov['up'] = self.table_uno.index((pstart[0], pstart[1]-1))
-		except: pass
-		try: mov['down'] = self.table_uno.index((pstart[0], pstart[1]+1))
-		except: pass
-		try: mov['left'] = self.table_uno.index((pstart[0]-1, pstart[1]))
-		except: pass
-		try: mov['right'] = self.table_uno.index((pstart[0]+1, pstart[1]))
-		except: pass	
+		if self.table_uno.get((pstart[0], pstart[1]-1)) == cstart:
+			mov['up'] = (pstart[0], pstart[1]-1)
+		if self.table_uno.get((pstart[0], pstart[1]+1)) == cstart:
+			mov['down'] = (pstart[0], pstart[1]+1)
+		if self.table_uno.get((pstart[0]-1, pstart[1])) == cstart:
+			mov['left'] = (pstart[0]-1, pstart[1])
+		if self.table_uno.get((pstart[0]+1, pstart[1])) == cstart:
+			mov['right'] = (pstart[0]+1, pstart[1])	
 		
 		aux = mov.pop(random.choice(mov.keys()))
 		while aux == None and len(mov) > 0:
@@ -337,19 +332,19 @@ class Generator():
 			aux = pstart
 		return aux
 
-	def step_two(self, pstart):
+	def step_two(self, pstart, cstart):
 		""" Elegir aleatoriamente dirección libre y no marcada (no haya sido elegida para este camino antes). """
 		
 		history = []
 		history.append(pstart)
 		
-		aux = self.random_dir(pstart)
+		aux = self.random_dir(pstart, cstart)
 
 		while aux != pstart and len(history) < self.maxim:
-			history.append(self.table_uno[aux])
-			pstart = self.table_uno[aux]
+			history.append(aux)
+			pstart = aux
 			self.table_uno.pop(aux)
-			aux = self.random_dir(pstart)
+			aux = self.random_dir(pstart, cstart)
 			if aux == pstart:
 				break
 		
@@ -359,8 +354,8 @@ class Generator():
 		""" Elegir pixel aleatorio del archivo que este libre (no haya camino definido) y sea un numero distinto de cero. """
 
 		while len(self.table_uno) > 0:
-			ran = random.randint(0, len(self.table_uno)-1)
-			changes = self.step_two(self.table_uno.pop(ran))
+			ran = random.choice(self.table_uno.keys())
+			changes = self.step_two(ran, self.table_uno.pop(ran))
 			# changes = self.step_two(table_uno.pop())
 			
 			for change in changes:
@@ -380,11 +375,11 @@ class Generator():
 							y['ps'] = len(changes)
 
 	def count_one(self):
-		self.table_uno = []
+		self.table_uno = {}
 		for x in self.table_all:
 			for y in x:
 				if y.get('number') == 1:
-					self.table_uno.append(y.get('posicion'))
+					self.table_uno[y.get('posicion')] = y.get('color')
 
 if __name__ == "__main__":
 	sys.exit()

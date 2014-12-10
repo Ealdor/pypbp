@@ -28,13 +28,11 @@ Puzzles are inside puzzle directory. A puzzle can be CSV (b&w) or JSON (color). 
 
 ###Puzzle Generator:
 To use the generator:
-> python generator.py <file_path> <maxim> <iters> 
+> python main.py
 
 Where:
 * maxim: max length number (1 - 21).
 * iters: number of iterations per number. Higher number means more complexity but more time to generate the puzzle (a good value is between 1 and 5).
-
-> python generator.py gentestconv_20x20.csv 21 10
 
 This will generate a *temp.csv* or *temp.json* file with the generated puzzle.
 
