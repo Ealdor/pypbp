@@ -59,456 +59,332 @@
 					- si fail del otro == 2 -> existe un fallo '''
 
 import sys
-import pygame
 import string
 import random
 import math
 import time
 import pickle
+import utils
 
-fails = 0
-table_uno = None
-table_all = None
+class Generator():
+	def __init__(self, maxim, iters, table_all, button, typ):
+		self.table_all = table_all
+		self.maxim = int(maxim)
+		self.iters = int(iters)
 
-maxim = 0
-iters = 0
+		self.table_uno = []
+		self.fails = 0
+		self.visited = []
+		self.destiny = None
+		self.types = 0
 
-i = 0
+		self.typ = typ
+		self.cancel = False
+		self.button = button
 
-visited = []
-destiny = None
-
-lc = True
-llc = True
-lllc = True
-
-def euclide(dire, dire2):
-	return abs( int(round(math.sqrt( (dire[0] - dire2[0])**2 + (dire[1] - dire2[1])**2 ))))
-
-def findfinal(dire, ini, allini):
-	global fails
-
-	if dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
-		for x in table_all:
-			for y in x:
-				if lc or llc: # condición 1 y 2
-					if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') not in visited[0:-1]:
-						# si el fallo es debido a llegar a uno que no es su pareja original
-						if y.get('posicion') != allini.get('conn')[-1]:
-							if y.get('c') == True:
-								if euclide(y.get('conn')[-1], allini.get('conn')[-1]) >= len(allini.get('conn')):
-									fails += 0
+	def findfinal(self, dire, ini, allini):
+		if dire[0] >= -1 and dire[1] >= -1 and dire[0] <= utils.ncolumns+1 and dire[1] <= utils.nrows+1:
+			for x in self.table_all:
+				for y in x:
+					if self.types == 1 or self.types == 2: # condición 1 y 2
+						if y.get('posicion') == dire and y.get('number') == allini.get('number') and y.get('posicion') not in self.visited[0:-1]:
+							# si el fallo es debido a llegar a uno que no es su pareja original
+							if y.get('posicion') != allini.get('conn')[-1]:
+								if y.get('c') == True:
+									if utils.euclide(y.get('conn')[-1], allini.get('conn')[-1]) >= len(allini.get('conn')):
+										self.fails += 0
+									else:
+										self.fails += 1
 								else:
-									fails += 1
-							else:
-								if len(y.get('conn')) > 0 and euclide(y.get('conn')[0], allini.get('conn')[-1]) >= len(allini.get('conn')):
-									fails += 0
-								else:
-									fails += 1
-						elif y.get('posicion') == allini.get('conn')[-1]:
-							fails += 1
+									if len(y.get('conn')) > 0 and utils.euclide(y.get('conn')[0], allini.get('conn')[-1]) >= len(allini.get('conn')):
+										self.fails += 0
+									else:
+										self.fails += 1
+							elif y.get('posicion') == allini.get('conn')[-1]:
+								self.fails += 1
 
-						if fails == 2:
-							return True
-				elif lllc:
-					if dire == y.get('posicion'):
-						if y.get('posicion') == allini.get('conn')[-1]:
-							fails += 1
-						if fails == 2:
-							return True
-	return False
+							if self.fails == 2:
+								return True
+					elif self.types == 3:
+						if dire == y.get('posicion'):
+							if y.get('posicion') == allini.get('conn')[-1]:
+								self.fails += 1
+							if self.fails == 2:
+								return True
+		return False
 
-def find(dire, ini, allini):
-	if dire[0] >= -1 and dire[1] >= -1 and dire[0] <= ncolumns+1 and dire[1] <= nrows+1:
-		for x in table_all:
-			for y in x:
-				if lc: # condición 1
-					if y.get('posicion') == dire and y.get('number') == -1 and y.get('ps') == allini.get('ps') and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
-						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
-				elif llc: # condición 2
-					if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in visited[0:-1]:
-						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
-				elif lllc:
-					if dire == y.get('posicion') and (y.get('posicion') in allini.get('conn') or y.get('posicion') in destiny.get('conn')) and y.get('posicion') not in visited[0:-1] and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') != destiny.get('conn')[-1]:
-						return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
-	return []
+	def find(self, dire, ini, allini):
+		self.button.update()
+		if self.cancel:
+			return []
+		if dire[0] >= -1 and dire[1] >= -1 and dire[0] <= utils.ncolumns+1 and dire[1] <= utils.nrows+1:
+			for x in self.table_all:
+				for y in x:
+					if self.types == 1: # condición 1
+						if y.get('posicion') == dire and y.get('number') == -1 and y.get('ps') == allini.get('ps') and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in self.visited[0:-1]:
+							return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
+					elif self.types == 2: # condición 2
+						if y.get('posicion') == dire and (y.get('number') == 0 or y.get('posicion') in allini.get('conn')) and y.get('posicion') != ini and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') not in self.visited[0:-1]:
+							return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
+					elif self.types == 3:
+						if dire == y.get('posicion') and (y.get('posicion') in allini.get('conn') or y.get('posicion') in self.destiny.get('conn')) and y.get('posicion') not in self.visited[0:-1] and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') != self.destiny.get('conn')[-1]:
+							return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
+		return []
 
-def way_mov(ini, allini):
-	global fails, visited
-	
-	fails = 0
+	def way_mov(self, ini, allini):
+		self.button.update()
+		if self.cancel:
+			return False
 
-	visited.append(ini)
+		self.fails = 0
+		self.visited.append(ini)
+		aux = [(ini[0], ini[1]-1), (ini[0]+1, ini[1]), (ini[0], ini[1]+1), (ini[0]-1, ini[1])] #up, right, down, left
 
-	aux = [(ini[0], ini[1]-1), (ini[0]+1, ini[1]), (ini[0], ini[1]+1), (ini[0]-1, ini[1])] #up, right, down, left
+		for dire in aux:
+			self.visited.append(dire)
+			if allini.get('number') > 2:
+				for dire2 in self.find(dire, ini, allini):
+					self.visited.append(dire2)
+					if allini.get('number') > 3:
+						for dire3 in self.find(dire2, ini, allini):
+							self.visited.append(dire3)
+							if allini.get('number') > 4:
+								for dire4 in self.find(dire3, ini, allini):
+									self.visited.append(dire4)
+									if allini.get('number') > 5:
+										for dire5 in self.find(dire4, ini, allini):
+											self.visited.append(dire5)
+											if allini.get('number') > 6:
+												for dire6 in self.find(dire5, ini, allini):
+													self.visited.append(dire6)
+													if allini.get('number') > 7:
+														for dire7 in self.find(dire6, ini, allini):
+															self.visited.append(dire7)
+															if allini.get('number') > 8:
+																for dire8 in self.find(dire7, ini, allini):
+																	self.visited.append(dire8)
+																	if allini.get('number') > 9:
+																		for dire9 in self.find(dire8, ini, allini):
+																			self.visited.append(dire9)
+																			if allini.get('number') > 10:
+																				for dire10 in self.find(dire9, ini, allini):
+																					self.visited.append(dire10)
+																					if allini.get('number') > 11:
+																						for dire11 in self.find(dire10, ini, allini):
+																							self.visited.append(dire11)
+																							if allini.get('number') > 12:
+																								for dire12 in self.find(dire11, ini, allini):
+																									self.visited.append(dire12)
+																									if allini.get('number') > 13:
+																										for dire13 in self.find(dire12, ini, allini):
+																											self.visited.append(dire13)
+																											if allini.get('number') > 14:
+																												for dire14 in self.find(dire13, ini, allini):
+																													self.visited.append(dire14)
+																													if allini.get('number') > 15:
+																														for dire15 in self.find(dire14, ini, allini):
+																															self.visited.append(dire15)
+																															if allini.get('number') > 16:
+																																for dire16 in self.find(dire15, ini, allini):
+																																	self.visited.append(dire16)
+																																	if allini.get('number') > 17:
+																																		for dire17 in self.find(dire16, ini, allini):
+																																			self.visited.append(dire17)
+																																			if allini.get('number') > 18:
+																																				for dire18 in self.find(dire17, ini, allini):
+																																					self.visited.append(dire18)
+																																					if allini.get('number') > 19:
+																																						for dire19 in self.find(dire18, ini, allini):
+																																							self.visited.append(dire19)
+																																							if allini.get('number') > 20:
+																																								for dire20 in self.find(dire19, ini, allini):
+																																									self.visited.append(dire20)
+																																									if self.findfinal(dire20, ini, allini): self.visited = []; return True
+																																									self.visited.pop()
+																																							else:
+																																								if self.findfinal(dire19, ini, allini): self.visited = []; return True
+																																							self.visited.pop()
+																																					else:
+																																						if self.findfinal(dire18, ini, allini): self.visited = []; return True
+																																					self.visited.pop()
+																																			else:
+																																				if self.findfinal(dire17, ini, allini): self.visited = []; return True
+																																			self.visited.pop()
+																																	else:
+																																		if self.findfinal(dire16, ini, allini): self.visited = []; return True
+																																	self.visited.pop()
+																															else:
+																																if self.findfinal(dire15, ini, allini): self.visited = []; return True
+																															self.visited.pop()
+																													else:
+																														if self.findfinal(dire14, ini, allini): self.visited = []; return True
+																													self.visited.pop()
+																											else:
+																												if self.findfinal(dire13, ini, allini): self.visited = []; return True
+																											self.visited.pop()
+																									else:
+																										if self.findfinal(dire12, ini, allini): self.visited = []; return True
+																									self.visited.pop()
+																							else:
+																								if self.findfinal(dire11, ini, allini): self.visited = []; return True
+																							self.visited.pop()
+																					else:
+																						if self.findfinal(dire10, ini, allini): self.visited = []; return True
+																					self.visited.pop()
+																			else:
+																				if self.findfinal(dire9, ini, allini): self.visited = []; return True
+																			self.visited.pop()
+																	else:
+																		if self.findfinal(dire8, ini, allini): self.visited = []; return True
+																	self.visited.pop()
+															else:
+																if self.findfinal(dire7, ini, allini): self.visited = []; return True
+															self.visited.pop()
+													else:
+														if self.findfinal(dire6, ini, allini): self.visited = []; return True
+													self.visited.pop()
+											else:
+												if self.findfinal(dire5, ini, allini): self.visited = []; return True
+											self.visited.pop()
+									else:
+										if self.findfinal(dire4, ini, allini): self.visited = []; return True
+									self.visited.pop()
+							else: 
+								if self.findfinal(dire3, ini, allini): self.visited = []; return True
+							self.visited.pop()
+					else:
+						if self.findfinal(dire2, ini, allini): self.visited = []; return True
+					self.visited.pop()
+			else:
+				if self.findfinal(dire, ini, allini): 
+					self.visited = []; return True
+			self.visited.pop()
 
-	# for dire in aux:
-	# 	visited.append(dire)
-	# 	if allini.get('number') > 2:
-	# 		for dire2 in find(dire, ini, allini):
-	# 			visited.append(dire2)
-	# 			if findfinal(dire2, ini, allini): visited = []; return True
-	# 			visited.pop()
-	# 	else:
-	# 		if findfinal(dire, ini, allini): visited = []; return True
-	# 	visited.pop()
-	# visited = []
+		self.visited = []
 
-	for dire in aux:
-		visited.append(dire)
-		if allini.get('number') > 2:
-			for dire2 in find(dire, ini, allini):
-				visited.append(dire2)
-				if allini.get('number') > 3:
-					for dire3 in find(dire2, ini, allini):
-						visited.append(dire3)
-						if allini.get('number') > 4:
-							for dire4 in find(dire3, ini, allini):
-								visited.append(dire4)
-								if allini.get('number') > 5:
-									for dire5 in find(dire4, ini, allini):
-										visited.append(dire5)
-										if allini.get('number') > 6:
-											for dire6 in find(dire5, ini, allini):
-												visited.append(dire6)
-												if allini.get('number') > 7:
-													for dire7 in find(dire6, ini, allini):
-														visited.append(dire7)
-														if allini.get('number') > 8:
-															for dire8 in find(dire7, ini, allini):
-																visited.append(dire8)
-																if allini.get('number') > 9:
-																	for dire9 in find(dire8, ini, allini):
-																		visited.append(dire9)
-																		if allini.get('number') > 10:
-																			for dire10 in find(dire9, ini, allini):
-																				visited.append(dire10)
-																				if allini.get('number') > 11:
-																					for dire11 in find(dire10, ini, allini):
-																						visited.append(dire11)
-																						if allini.get('number') > 12:
-																							for dire12 in find(dire11, ini, allini):
-																								visited.append(dire12)
-																								if allini.get('number') > 13:
-																									for dire13 in find(dire12, ini, allini):
-																										visited.append(dire13)
-																										if allini.get('number') > 14:
-																											for dire14 in find(dire13, ini, allini):
-																												visited.append(dire14)
-																												if allini.get('number') > 15:
-																													for dire15 in find(dire14, ini, allini):
-																														visited.append(dire15)
-																														if allini.get('number') > 16:
-																															for dire16 in find(dire15, ini, allini):
-																																visited.append(dire16)
-																																if allini.get('number') > 17:
-																																	for dire17 in find(dire16, ini, allini):
-																																		visited.append(dire17)
-																																		if allini.get('number') > 18:
-																																			for dire18 in find(dire17, ini, allini):
-																																				visited.append(dire18)
-																																				if allini.get('number') > 19:
-																																					for dire19 in find(dire18, ini, allini):
-																																						visited.append(dire19)
-																																						if allini.get('number') > 20:
-																																							for dire20 in find(dire19, ini, allini):
-																																								visited.append(dire20)
-																																								if findfinal(dire20, ini, allini): visited = []; return True
-																																								visited.pop()
-																																						else:
-																																							if findfinal(dire19, ini, allini): visited = []; return True
-																																						visited.pop()
-																																				else:
-																																					if findfinal(dire18, ini, allini): visited = []; return True
-																																				visited.pop()
-																																		else:
-																																			if findfinal(dire17, ini, allini): visited = []; return True
-																																		visited.pop()
-																																else:
-																																	if findfinal(dire16, ini, allini): visited = []; return True
-																																visited.pop()
-																														else:
-																															if findfinal(dire15, ini, allini): visited = []; return True
-																														visited.pop()
-																												else:
-																													if findfinal(dire14, ini, allini): visited = []; return True
-																												visited.pop()
-																										else:
-																											if findfinal(dire13, ini, allini): visited = []; return True
-																										visited.pop()
-																								else:
-																									if findfinal(dire12, ini, allini): visited = []; return True
-																								visited.pop()
-																						else:
-																							if findfinal(dire11, ini, allini): visited = []; return True
-																						visited.pop()
-																				else:
-																					if findfinal(dire10, ini, allini): visited = []; return True
-																				visited.pop()
-																		else:
-																			if findfinal(dire9, ini, allini): visited = []; return True
-																		visited.pop()
-																else:
-																	if findfinal(dire8, ini, allini): visited = []; return True
-																visited.pop()
-														else:
-															if findfinal(dire7, ini, allini): visited = []; return True
-														visited.pop()
-												else:
-													if findfinal(dire6, ini, allini): visited = []; return True
-												visited.pop()
-										else:
-											if findfinal(dire5, ini, allini): visited = []; return True
-										visited.pop()
-								else:
-									if findfinal(dire4, ini, allini): visited = []; return True
-								visited.pop()
-						else: 
-							if findfinal(dire3, ini, allini): visited = []; return True
-						visited.pop()
-				else:
-					if findfinal(dire2, ini, allini): visited = []; return True
-				visited.pop()
-		else:
-			if findfinal(dire, ini, allini): 
-				visited = []; return True
-		visited.pop()
+		return False
 
-	visited = []
+	def cond_dos(self, types):
+		""" COND2: si mediante cuandros blancos o su propio camino hay mas de un camino posible desde un número a su pareja. """
+		self.types = types
+		porcent = 0
 
-	return False
+		if self.types == 3:
+			table_aux = []
+			for x in self.table_all:
+				for y in x:
+					if y.get('number') >= 6 and y.get('c') == True:
+						for w in self.table_all:
+							for z in w:
+								if y != z and z.get('number') >= 6 and z.get('c') == True and ((y,z) not in table_aux and (z,y) not in table_aux):
+									table_aux.append((y,z))
 
-def cond_dos():
-	""" COND2: si mediante cuandros blancos o su propio camino hay mas de un camino posible desde un número a su pareja. """
-
-	global table_all, destiny
-
-	porcent = 0
-
-	if lllc:
-		table_aux = []
-		for x in table_all:
-			for y in x:
-				if y.get('number') >= 6 and y.get('c') == True:
-					for w in table_all:
-						for z in w:
-							if y != z and z.get('number') >= 6 and z.get('c') == True and ((y,z) not in table_aux and (z,y) not in table_aux):
-								table_aux.append((y,z))
-
-		for x in table_aux:
-			porcent += 1
-			print "\rBuscando y corrigiendo posibles fallos (condición 3): {0}/{1}".format(porcent, len(table_aux)),
-			sys.stdout.flush()
-			if len(x[0].get('conn')) > 0 and len(x[1].get('conn')) > 0:
-				destiny = x[1]
-				if way_mov(x[0].get('posicion'), x[0]):
-					destiny = x[0]
-					if way_mov(x[1].get('posicion'), x[1]):
-						if x[0].get('number') > x[1].get('number'):
-							con = x[1].get('conn')
-						else:
-							con = x[0].get('conn')
-						for w in con:
-							table_all[w[0]][w[1]]['number'] = 1
-							table_all[w[0]][w[1]]['conn'] = []
-							table_all[w[0]][w[1]]['c'] = False
-							table_all[w[0]][w[1]]['ps'] = 1
-
-	else:
-		for x in table_all:
-			for y in x:
+			for x in table_aux:
 				porcent += 1
-				if lc:
-					print '\rBuscando y corrigiendo posibles fallos (condición 1): {0}/{1}'.format(porcent, len(table_all)*len(x)),
-				elif llc:
-					print '\rBuscando y corrigiendo posibles fallos (condición 2): {0}/{1}'.format(porcent, len(table_all)*len(x)),
-				sys.stdout.flush()
-				if len(y.get('conn')) >= maxim and y.get('c') == True:
-					if way_mov(y.get('posicion'), y):
+				self.typ.set("Progreso: {0}/{1}".format(porcent, len(table_aux)))
+				if len(x[0].get('conn')) > 0 and len(x[1].get('conn')) > 0:
+					self.destiny = x[1]
+					if self.way_mov(x[0].get('posicion'), x[0]):
+						self.destiny = x[0]
+						if self.way_mov(x[1].get('posicion'), x[1]):
+							if x[0].get('number') > x[1].get('number'):
+								con = x[1].get('conn')
+							else:
+								con = x[0].get('conn')
+							for w in con:
+								self.table_all[w[0]][w[1]]['number'] = 1
+								self.table_all[w[0]][w[1]]['conn'] = []
+								self.table_all[w[0]][w[1]]['c'] = False
+								self.table_all[w[0]][w[1]]['ps'] = 1
+
+		else:
+			for x in self.table_all:
+				for y in x:
+					porcent += 1
+					self.typ.set("Progreso: {0}/{1}".format(porcent, len(self.table_all)*len(x)))
+					if len(y.get('conn')) >= self.maxim and y.get('c') == True:
+						if self.way_mov(y.get('posicion'), y):
+							con = y.get('conn')
+							for w in con:
+								self.table_all[w[0]][w[1]]['number'] = 1
+								self.table_all[w[0]][w[1]]['conn'] = []
+								self.table_all[w[0]][w[1]]['c'] = False
+								self.table_all[w[0]][w[1]]['ps'] = 1
+					elif y.get('number') > 0 and y.get('number') < self.maxim:
 						con = y.get('conn')
 						for w in con:
-							table_all[w[0]][w[1]]['number'] = 1
-							table_all[w[0]][w[1]]['conn'] = []
-							table_all[w[0]][w[1]]['c'] = False
-							table_all[w[0]][w[1]]['ps'] = 1
-				elif y.get('number') > 0 and y.get('number') < maxim:
-					con = y.get('conn')
-					for w in con:
-						table_all[w[0]][w[1]]['number'] = 1
-						table_all[w[0]][w[1]]['conn'] = []
-						table_all[w[0]][w[1]]['c'] = False
-						table_all[w[0]][w[1]]['ps'] = 1
+							self.table_all[w[0]][w[1]]['number'] = 1
+							self.table_all[w[0]][w[1]]['conn'] = []
+							self.table_all[w[0]][w[1]]['c'] = False
+							self.table_all[w[0]][w[1]]['ps'] = 1
 
-def random_dir(pstart):
-
-	global table_uno
-
-	mov = {'up': None, 'down': None, 'left': None, 'right': None}
-	
-	try: mov['up'] = table_uno.index((pstart[0], pstart[1]-1))
-	except: pass
-	try: mov['down'] = table_uno.index((pstart[0], pstart[1]+1))
-	except: pass
-	try: mov['left'] = table_uno.index((pstart[0]-1, pstart[1]))
-	except: pass
-	try: mov['right'] = table_uno.index((pstart[0]+1, pstart[1]))
-	except: pass	
-	
-	aux = mov.pop(random.choice(mov.keys()))
-	while aux == None and len(mov) > 0:
-		aux = mov.pop(random.choice(mov.keys()))
-	if aux == None:
-		aux = pstart
-	return aux
-
-def step_two(pstart):
-	""" Elegir aleatoriamente dirección libre y no marcada (no haya sido elegida para este camino antes). """
-	
-	global table_uno
-
-	history = []
-	history.append(pstart)
-	
-	aux = random_dir(pstart)
-
-	while aux != pstart and len(history) < maxim:
-		history.append(table_uno[aux])
-		pstart = table_uno[aux]
-		table_uno.pop(aux)
-		aux = random_dir(pstart)
-		if aux == pstart:
-			break
-	
-	return history
-
-def step_one():
-	""" Elegir pixel aleatorio del archivo que este libre (no haya camino definido) y sea un numero distinto de cero. """
-
-	global table_all, table_uno
-
-	while len(table_uno) > 0:
-		ran = random.randint(0, len(table_uno)-1)
-		changes = step_two(table_uno.pop(ran))
-		# changes = step_two(table_uno.pop())
-		print '\rGenerando puzzle: {0}'.format(len(table_uno)),
-		sys.stdout.flush()
+	def random_dir(self, pstart):
+		mov = {'up': None, 'down': None, 'left': None, 'right': None}
 		
-		for change in changes:
-			for x in table_all:
-				for y in x:
-					if y['posicion'] == change:
-						if changes[0] == y['posicion'] or changes[-1] == y['posicion']:
-							y['number'] = len(changes)
-							y['conn'] = changes
-							if changes[0] == y['posicion']:
-								y['c'] = True
+		try: mov['up'] = self.table_uno.index((pstart[0], pstart[1]-1))
+		except: pass
+		try: mov['down'] = self.table_uno.index((pstart[0], pstart[1]+1))
+		except: pass
+		try: mov['left'] = self.table_uno.index((pstart[0]-1, pstart[1]))
+		except: pass
+		try: mov['right'] = self.table_uno.index((pstart[0]+1, pstart[1]))
+		except: pass	
+		
+		aux = mov.pop(random.choice(mov.keys()))
+		while aux == None and len(mov) > 0:
+			aux = mov.pop(random.choice(mov.keys()))
+		if aux == None:
+			aux = pstart
+		return aux
 
-						else:
-							y['number'] = -1 # para indicar la solucion correcta
-							y['c'] = False
-							y['conn'] = []
-						y['ps'] = len(changes)
+	def step_two(self, pstart):
+		""" Elegir aleatoriamente dirección libre y no marcada (no haya sido elegida para este camino antes). """
+		
+		history = []
+		history.append(pstart)
+		
+		aux = self.random_dir(pstart)
 
-def write_file(table_all, ncolumns, nrows):
-	f = open("temp.csv", 'w')
-	for x in xrange(0, nrows):
-		for y in xrange(0, ncolumns):
-			if table_all[y][x].get('number') == -1:
-				f.write('0')
-			else:
-				f.write(str(table_all[y][x].get('number')))
-			if y == ncolumns-1: f.write('\n')
-			else: f.write(',')
+		while aux != pstart and len(history) < self.maxim:
+			history.append(self.table_uno[aux])
+			pstart = self.table_uno[aux]
+			self.table_uno.pop(aux)
+			aux = self.random_dir(pstart)
+			if aux == pstart:
+				break
+		
+		return history
 
-	with open("temp.pickle", 'wb') as f:
-		pickle.dump(table_all, f)
+	def step_one(self):
+		""" Elegir pixel aleatorio del archivo que este libre (no haya camino definido) y sea un numero distinto de cero. """
 
-def count_one():
-	global table_uno
+		while len(self.table_uno) > 0:
+			ran = random.randint(0, len(self.table_uno)-1)
+			changes = self.step_two(self.table_uno.pop(ran))
+			# changes = self.step_two(table_uno.pop())
+			
+			for change in changes:
+				for x in self.table_all:
+					for y in x:
+						if y['posicion'] == change:
+							if changes[0] == y['posicion'] or changes[-1] == y['posicion']:
+								y['number'] = len(changes)
+								y['conn'] = changes
+								if changes[0] == y['posicion']:
+									y['c'] = True
 
-	table_uno = []
+							else:
+								y['number'] = -1 # para indicar la solucion correcta
+								y['c'] = False
+								y['conn'] = []
+							y['ps'] = len(changes)
 
-	j = 0
-	for x in table_all:
-		for y in x:
-			if y.get('number') == 1:
-				j+= 1
-				table_uno.append(y.get('posicion'))
-	return j
+	def count_one(self):
+		self.table_uno = []
+		for x in self.table_all:
+			for y in x:
+				if y.get('number') == 1:
+					self.table_uno.append(y.get('posicion'))
 
 if __name__ == "__main__":
-
-	start_time = time.time()
-
-	table_all = []
-	table_uno = []
-
-	try:
-		f = open(sys.argv[1], 'r')
-	except IOError:
-		print "File not found"
-		sys.exit()
-
-	typef = sys.argv[1].split('.')[1]
-	maxim = int(sys.argv[2])
-	iters = int(sys.argv[3])
-
-	# CONTEO DE COLUMNAS Y FILAS
-	if typef == 'csv':
-		contador = 0
-		ncolumns = len(string.split(string.strip(f.readline()), ','))
-		f.seek(0)
-		for linea in f.xreadlines( ): contador+= 1
-		nrows = contador
-		f.seek(0)
-
-	table_all = [[None for y in xrange(0, int(nrows))] for x in xrange(0, int(ncolumns))]
-
-	if typef == 'csv': # CSV
-		for x in xrange(0, int(nrows)):
-			num = string.split(string.strip(f.readline()), ',')
-			for y in xrange(0, int(ncolumns)):
-				tn = int(string.split(num.pop(0), ',')[0])
-				if tn == 0:
-					table_all[y][x] = {'number': 0, 'posicion': (y, x), 'conn': [], 'ps': 0}
-				elif tn == 1:
-					table_all[y][x] = {'number': 1, 'posicion': (y, x), 'conn': [], 'ps': 1, 'c': False}
-					table_uno.append((y, x))
-	
-	print "== Generando puzzle y asegurando solución única =="
-	while True:
-		if maxim == 1:
-			break
-
-		i += 1
-
-		step_one()
-		
-		lc = True
-		llc = False
-		lllc = False
-		cond_dos()
-
-		if maxim >= 6:
-			lc = False
-			llc = False
-			lllc = True
-			cond_dos()
-
-		lc = False
-		llc = True
-		lllc = False
-		cond_dos()
-
-		print "- {0} unos (iter: {1}/{2}, number: {3}) - {4} seg".format(count_one(), i, iters, maxim, int(time.time() - start_time))
-
-		if i == iters:
-			maxim -= 1
-			i = 0
-
-	print "== Resumen =="
-	print "Total de unos: {0} - Tiempo: {1} seg".format(count_one(), int(time.time() - start_time))
-
-	write_file(table_all, ncolumns, nrows)
-
 	sys.exit()
