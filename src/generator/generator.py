@@ -268,15 +268,20 @@ class Generator():
 			table_aux = []
 			for x in self.table_all:
 				for y in x:
+					self.button.update()
+					porcent += 1
+					self.typ.set("Progreso: {0}/{1} (1º etapa)".format(porcent, len(self.table_all)*len(x)))
 					if y.get('number') >= 4 and y.get('c') == True:
 						for w in self.table_all:
 							for z in w:
 								if z.get('color') == y.get('color') and y != z and z.get('number') >= 6 and z.get('c') == True and ((y,z) not in table_aux and (z,y) not in table_aux):
 									table_aux.append((y,z))
 
+			porcent = 0
 			for x in table_aux:
+				self.button.update()
 				porcent += 1
-				self.typ.set("Progreso: {0}/{1}".format(porcent, len(table_aux)))
+				self.typ.set("Progreso: {0}/{1} (2º etapa)".format(porcent, len(table_aux)))
 				if len(x[0].get('conn')) > 0 and len(x[1].get('conn')) > 0:
 					self.destiny = x[1]
 					if self.way_mov(x[0].get('posicion'), x[0]):
@@ -357,6 +362,8 @@ class Generator():
 		""" Elegir pixel aleatorio del archivo que este libre (no haya camino definido) y sea un numero distinto de cero. """
 
 		while len(self.table_uno) > 0:
+			self.button.update()
+			self.typ.set("Progreso: {0}".format(len(self.table_uno)))
 			ran = random.choice(self.table_uno.keys())
 			changes = self.step_two(ran, self.table_uno.pop(ran))
 			# changes = self.step_two(table_uno.pop())

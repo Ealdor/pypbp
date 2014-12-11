@@ -147,7 +147,7 @@ class Application(tk.Frame):
 				self.g.cond_dos(2)
 				self.totaltime.set("Tiempo total: {0}s".format(int(time.time() - start_time)))
 				if self.g.maxim == 4:
-					self.status.set("Estado: Aplicando condición tres...")
+					self.status.set("Estado: Aplicando condición tres (solo en número 4)...")
 					self.g.cond_dos(3)
 					self.totaltime.set("Tiempo total: {0}s".format(int(time.time() - start_time)))
 				self.g.count_one()
