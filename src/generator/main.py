@@ -52,7 +52,7 @@ class Application(tk.Frame):
 		self.instructionLabel.grid(padx = 10, pady = 10, column = 0, row = 0, columnspan = 2)
 
 		# Frame option
-		self.browseLabel = tk.LabelFrame(self, text = "Opciones", padx = 10, pady = 10)
+		self.browseLabel = tk.LabelFrame(self, text = "Opciones de generación", padx = 10, pady = 10)
 		self.browseLabel.grid(sticky = tk.N, padx = 10, pady = 0, column = 0, row = 1)
 		self.browseLabel.columnconfigure(1, pad = 10)
 		self.browseLabel.rowconfigure(4, pad = 10)
@@ -108,7 +108,7 @@ class Application(tk.Frame):
 
 	def popup(self):
 		self.completeName = tkFileDialog.askopenfilename(initialdir = "puzzles", filetypes = [("Bitmap", "*.csv"), ("Bitmap", "*.json")])
-		if self.completeName != "":
+		if self.completeName != "" and self.completeName != ():
 			self.startButton.config(state = 'normal')
 			self.name.set("Puzzle: " + string.rsplit(self.completeName, "/")[-1])
 			if len(self.name.get()) >= 60:
@@ -146,7 +146,7 @@ class Application(tk.Frame):
 				self.status.set("Estado: Aplicando condición dos...")
 				self.g.cond_dos(2)
 				self.totaltime.set("Tiempo total: {0}s".format(int(time.time() - start_time)))
-				if self.g.maxim == 6:
+				if self.g.maxim == 4:
 					self.status.set("Estado: Aplicando condición tres...")
 					self.g.cond_dos(3)
 					self.totaltime.set("Tiempo total: {0}s".format(int(time.time() - start_time)))
