@@ -25,6 +25,11 @@ import json
 ncolumns = 0
 nrows = 0
 
+def sec_to(sec):
+	m, s = divmod(sec, 60)
+	h, m = divmod(m, 60)
+	return h, m, s
+
 def euclide(dire, dire2):
 	return abs( int(round(math.sqrt( (dire[0] - dire2[0])**2 + (dire[1] - dire2[1])**2 ))))
 

@@ -139,17 +139,23 @@ class Application(tk.Frame):
 				self.leng.set("Iteración: {0}/{1} y Número: {2}".format(i, self.complexSpinbox.get(), self.g.maxim))
 				self.status.set("Estado: Generando puzzle...")
 				self.g.step_one()
-				self.totaltime.set("Tiempo total: {0}s".format(int(time.time() - start_time)))
+				tim = utils.sec_to(int(time.time() - start_time), 60)
+				self.totaltime.set("Tiempo total: {0}:{1}:{2}".format(tim[0], tim[1], tim[2]))
 				self.status.set("Estado: Aplicando condición uno...")
 				self.g.cond_dos(1)
-				self.totaltime.set("Tiempo total: {0}s".format(int(time.time() - start_time)))
+				tim = utils.sec_to(int(time.time() - start_time), 60)
+				self.totaltime.set("Tiempo total: {0}:{1}:{2}".format(tim[0], tim[1], tim[2]))
 				self.status.set("Estado: Aplicando condición dos...")
 				self.g.cond_dos(2)
-				self.totaltime.set("Tiempo total: {0}s".format(int(time.time() - start_time)))
-				if self.g.maxim == 4:
-					self.status.set("Estado: Aplicando condición tres (solo en número 4)...")
+				tim = utils.sec_to(int(time.time() - start_time), 60)
+				self.totaltime.set("Tiempo total: {0}:{1}:{2}".format(tim[0], tim[1], tim[2]))
+				
+				if self.g.maxim >= 4:
+					self.status.set("Estado: Aplicando condición tres...")
 					self.g.cond_dos(3)
-					self.totaltime.set("Tiempo total: {0}s".format(int(time.time() - start_time)))
+					tim = utils.sec_to(int(time.time() - start_time), 60)
+					self.totaltime.set("Tiempo total: {0}:{1}:{2}".format(tim[0], tim[1], tim[2]))
+				
 				self.g.count_one()
 				self.ones.set("Total de unos: {0}".format(len(self.g.table_uno)))
 				if i == self.g.iters:

@@ -122,8 +122,11 @@ class Generator():
 							else:
 								return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
 					elif self.types == 3:
-						if dire == y.get('posicion') and y.get('color') == allini.get('color') and (y.get('posicion') in allini.get('conn') or y.get('posicion') in self.destiny.get('conn')) and y.get('posicion') not in self.visited[0:-1] and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') != self.destiny.get('conn')[-1]:
-							return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
+						if dire == y.get('posicion') and y.get('color') == allini.get('color') and (y.get('posicion') in allini.get('conn') or y.get('posicion') in self.destiny.get('conn') or y.get('number') == 0) and y.get('posicion') not in self.visited[0:-1] and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') != self.destiny.get('conn')[-1] and y.get('posicion') != self.destiny.get('conn')[0]:
+							if utils.euclide(y.get('posicion'), allini.get('conn')[-1]) >= len(allini.get('conn')):
+								return []
+							else:
+								return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
 		return []
 
 	def way_mov(self, ini, allini):
@@ -274,8 +277,17 @@ class Generator():
 					if y.get('number') >= 4 and y.get('c') == True:
 						for w in self.table_all:
 							for z in w:
-								if z.get('color') == y.get('color') and y != z and z.get('number') >= 6 and z.get('c') == True and ((y,z) not in table_aux and (z,y) not in table_aux):
-									table_aux.append((y,z))
+								if z.get('color') == y.get('color') and y != z and z.get('number') >= 4 and z.get('number') <= self.maxim and z.get('c') == True and ((y,z) not in table_aux and (z,y) not in table_aux):
+									if y.get('number') > z.get('number'):
+										for pun in y.get('conn'):
+											if utils.euclide(pun, z.get('posicion')) <= len(z.get('conn')):
+												table_aux.append((y,z))
+												break
+									else:
+										for pun in z.get('conn'):
+											if utils.euclide(pun, y.get('posicion')) <= len(y.get('conn')):
+												table_aux.append((y,z))
+												break
 
 			porcent = 0
 			for x in table_aux:
