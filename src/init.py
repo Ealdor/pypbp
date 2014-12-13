@@ -48,7 +48,7 @@ def init_puzzle(fname):
 		print "File not found"
 		sys,exit()
 
-	typef = fname.split('.')[1]
+	typef = fname.rsplit('.')[-1]
 
 	# CONTEO DE COLUMNAS Y FILAS
 	if typef == 'csv':
