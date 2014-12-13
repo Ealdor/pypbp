@@ -122,7 +122,8 @@ class Generator():
 							else:
 								return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]
 					elif self.types == 3:
-						if dire == y.get('posicion') and y.get('color') == allini.get('color') and (y.get('posicion') in allini.get('conn') or y.get('posicion') in self.destiny.get('conn') or y.get('number') == 0) and y.get('posicion') not in self.visited[0:-1] and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') != self.destiny.get('conn')[-1] and y.get('posicion') != self.destiny.get('conn')[0]:
+						# and y.get('color') == allini.get('color')
+						if dire == y.get('posicion') and (y.get('posicion') in allini.get('conn') or y.get('posicion') in self.destiny.get('conn') or y.get('number') == 0) and y.get('posicion') not in self.visited[0:-1] and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') != self.destiny.get('conn')[-1] and y.get('posicion') != self.destiny.get('conn')[0]:
 							if utils.euclide(y.get('posicion'), allini.get('conn')[-1]) >= len(allini.get('conn')):
 								return []
 							else:
@@ -375,6 +376,8 @@ class Generator():
 
 		while len(self.table_uno) > 0:
 			self.button.update()
+			if self.cancel:
+				break
 			self.typ.set("Progreso: {0}".format(len(self.table_uno)))
 			ran = random.choice(self.table_uno.keys())
 			changes = self.step_two(ran, self.table_uno.pop(ran))
