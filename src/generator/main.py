@@ -184,5 +184,5 @@ class Application(tk.Frame):
 			self.status.set("Estado: Cancelando...")
 
 app = Application()
-app.master.title('Pypbp - Generador')
+app.master.title('Pypbp 1.0')
 app.mainloop()

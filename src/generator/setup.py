@@ -28,7 +28,7 @@ executables = [
 ]
 
 setup(name='Pypbp',
-      version='0.5',
+      version='1.0',
       description='Paint by pairs using python and pygame',
       options=options,
       executables=executables
