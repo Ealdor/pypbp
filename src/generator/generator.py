@@ -278,7 +278,7 @@ class Generator():
 					if y.get('number') >= 4 and y.get('c') == True:
 						for w in self.table_all:
 							for z in w:
-								if z.get('color') == y.get('color') and y != z and z.get('number') >= 4 and z.get('number') <= self.maxim and z.get('c') == True and ((y,z) not in table_aux and (z,y) not in table_aux):
+								if y != z and z.get('number') >= 4 and z.get('number') <= self.maxim and z.get('c') == True and ((y,z) not in table_aux and (z,y) not in table_aux):
 									if y.get('number') > z.get('number'):
 										for pun in y.get('conn'):
 											if utils.euclide(pun, z.get('posicion')) <= len(z.get('conn')):
