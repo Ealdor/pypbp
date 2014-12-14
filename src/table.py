@@ -60,7 +60,7 @@ class Table():
 		self.cellsprite = CellSprite(self.table[0][0], 3)
 		self.sprites_list = pygame.sprite.Group()
 		self.sprites_list.add(self.cellsprite)
-		self.nfont = pygame.font.SysFont(None, FONT_SIZE)
+		self.nfont = pygame.font.SysFont("Arial", FONT_SIZE, bold = True)
 		self.history = []
 		self.stop = False
 		self.tcheck = 0
