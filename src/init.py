@@ -23,6 +23,10 @@ import string
 import pygame
 from cells import *
 
+ncolumns = 0
+nrows = 0
+tip = ""
+
 def init_pygame():
 	""" Función inicializar los modulos de pygame necesarios """
 
@@ -40,6 +44,8 @@ def init_puzzle(fname):
 		table(list): tabla del puzzle
 
 	"""
+
+	global ncolumns, nrows, typef
 	
 	# ABRIR ARCHIVO
 	try:
