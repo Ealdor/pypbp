@@ -15,7 +15,8 @@ There is only one unique way to link all the squares in a properly-constructed p
 
 ###Considerations:
 Puzzles are inside puzzle directory. A puzzle can be CSV (b&w) or JSON (color). 
-To launch the game write on a terminal (insie the src directory): 
+
+To launch the game write on a terminal (inside the src directory): 
 
 > python main.py
 
@@ -24,7 +25,8 @@ To launch the game write on a terminal (insie the src directory):
 
 ###Puzzle Generator:
 Inside the generator directory there is a generator script to generate new puzzles from an image bitmap (CSV or JSON).
-To use the generator write on a terminal (insie the generator directory): 
+
+To use the generator write on a terminal (inside the generator directory): 
 
 > python main.py
 
@@ -36,15 +38,16 @@ This will generate a *temp.csv* or *temp.json* file with the generated puzzle.
 
 ###Utils:
 Inside the utils directory there is an utility to convert an image to CSV or JSON.
+
 There are two scripts to generate a puzzle (only 1's) from an image:
 
 > python img_to_csv.py <image_name> <width> <height>
+
 > python img_to_json.py <image_name> <width> <height>
 
 This will generate a *csv* or *json* file. After this you can generate a complete puzzle with the Puzzle Generator.
 
 ###TODO:
-* Make a gui to select the puzzle and configure the resolution/fullscreen.
 * Mouse support.
 
 ###Contact / Donations:
