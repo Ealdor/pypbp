@@ -124,7 +124,10 @@ class Generator():
 					elif self.types == 3:
 						# and y.get('color') == allini.get('color')
 						if dire == y.get('posicion') and (y.get('posicion') in allini.get('conn') or y.get('posicion') in self.destiny.get('conn') or y.get('number') == 0) and y.get('posicion') not in self.visited[0:-1] and y.get('posicion') != allini.get('conn')[-1] and y.get('posicion') != self.destiny.get('conn')[-1] and y.get('posicion') != self.destiny.get('conn')[0]:
-							return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
+							if utils.euclide(y.get('posicion'), allini.get('conn')[-1]) >= len(allini.get('conn')):
+								return []
+							else:
+								return [(dire[0], dire[1]-1), (dire[0]+1, dire[1]), (dire[0], dire[1]+1), (dire[0]-1, dire[1])]	
 		return []
 
 	def way_mov(self, ini, allini):
@@ -300,6 +303,13 @@ class Generator():
 								con = x[1].get('conn')
 							else:
 								con = x[0].get('conn')
+							# con = x[0].get('conn')
+							# for w in con:
+							# 	self.table_all[w[0]][w[1]]['number'] = 1
+							# 	self.table_all[w[0]][w[1]]['conn'] = []
+							# 	self.table_all[w[0]][w[1]]['c'] = False
+							# 	self.table_all[w[0]][w[1]]['ps'] = 1
+							# con = x[1].get('conn')
 							for w in con:
 								self.table_all[w[0]][w[1]]['number'] = 1
 								self.table_all[w[0]][w[1]]['conn'] = []
