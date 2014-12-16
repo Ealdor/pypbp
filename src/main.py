@@ -111,7 +111,7 @@ class Application(tk.Frame):
 				elif event.type == pygame.VIDEORESIZE: # si se cambia el tamaño de la ventana
 					table.screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
 					table.draw()
-		pygame.display.quit()
+		pygame.quit()
 
 app = Application()
 app.master.title('Pypbp 1.0')
