@@ -22,17 +22,14 @@ import sys
 import string
 import pygame
 from cells import *
-
-ncolumns = 0
-nrows = 0
-tip = ""
+import constants
 
 def init_pygame():
 	""" Función inicializar los modulos de pygame necesarios """
 
 	pygame.font.init()
 
-def init_puzzle(fname):
+def init_puzzle(fname, ones = 0):
 	""" Inicializa el tablero desde un archivo pasado
 
 	Args:
@@ -44,8 +41,6 @@ def init_puzzle(fname):
 		table(list): tabla del puzzle
 
 	"""
-
-	global ncolumns, nrows, typef
 	
 	# ABRIR ARCHIVO
 	try:
@@ -55,7 +50,6 @@ def init_puzzle(fname):
 		sys,exit()
 
 	typef = fname.rsplit('.')[-1]
-
 	# CONTEO DE COLUMNAS Y FILAS
 	if typef == 'csv':
 		contador = 0
@@ -73,10 +67,8 @@ def init_puzzle(fname):
 		nrows = len(data)
 		ncolumns = contador
 	f.seek(0)
-
 	# INICIALIZACION DE LA TABLA
 	table = [[Cell(x*CELL_WIDTH, y*CELL_WIDTH, 0) for y in xrange(0, int(nrows))] for x in xrange(0, int(ncolumns))]
-
 	# PARSEO DE LOS ARCHIVOS
 	if typef == 'csv': # CSV
 		for x in xrange(0, int(nrows)):
@@ -85,6 +77,10 @@ def init_puzzle(fname):
 				tn = int(string.split(num.pop(0), ',')[0])
 				if tn != 0:
 					table[y][x] = Cell(y*CELL_WIDTH, x*CELL_WIDTH, tn, BLACK)
+				if ones == 1 and tn == 1:
+					table[y][x].background_color = BLACK
+					table[y][x].number_color = WHITE
+					table[y][x].connections.append(table[y][x])
 	elif typef == 'json': # JSON
 		data = json.load(f)
 		for row in xrange(len(data)):
@@ -93,5 +89,9 @@ def init_puzzle(fname):
 				c = data[row][col]["color"]
 				colour = [c["r"], c["g"], c["b"]]
 				table[col][row] = Cell(col*CELL_WIDTH, row*CELL_WIDTH, value, colour)
+				if ones == 1 and value == 1:
+					table[col][row].background_color = colour
+					table[col][row].number_color = WHITE
+					table[col][row].connections.append(table[col][row])
 	f.close()
 	return ncolumns, nrows, table

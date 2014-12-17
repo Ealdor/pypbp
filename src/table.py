@@ -89,10 +89,11 @@ class Table():
 
 		for x in self.table:
 			for cell in x:
-				if cell.number > 1:
-					self.tcheck += cell.number
-				elif cell.number == 1:
-					self.tcheck += cell.number+1
+				if cell.background_color == WHITE:
+					if cell.number > 1:
+						self.tcheck += cell.number
+					elif cell.number == 1:
+						self.tcheck += cell.number+1
 
 	def update(self, lista):
 		""" Función que actualiza en la pantalla una celda o lista de celdas """
