@@ -102,8 +102,37 @@ class Table():
 			if (x.number == 0 and len(x.lines) > 1 and x.background_color == WHITE) or (x.number != 0 and len(x.lines) > 1 and x.background_color == WHITE and x.number_color != GREY) or (x.number == 1 and len(x.lines) > 1): # limpieza por errores
 				x.lines = x.lines[0:1]
 			pygame.draw.rect(self.tsurface, x.background_color, x.rect, 0)
-			pygame.draw.rect(self.tsurface, x.border_color, x.rect, x.bsize)
-			if len(x.lines) > 1: # dibujamos las lineas de conexión de la celda si hay
+			if len(x.connections) > 1 or len(x.lines) > 1:
+				if x.number >= 1 and x.number_color != GREY:
+					if x.rect.midbottom in x.lines:
+						pygame.draw.line(self.tsurface, x.border_color, x.rect.topleft, x.rect.topright, x.bsize)
+					elif x.rect.midtop in x.lines:
+						pygame.draw.line(self.tsurface, x.border_color, x.rect.bottomleft, x.rect.bottomright, x.bsize)
+					elif x.rect.midright in x.lines:
+						pygame.draw.line(self.tsurface, x.border_color, x.rect.topleft, x.rect.bottomleft, x.bsize)	
+					elif x.rect.midleft in x.lines:
+						pygame.draw.line(self.tsurface, x.border_color, x.rect.topright, x.rect.bottomright, x.bsize)
+				if x.rect.midbottom in x.lines and x.rect.midleft in x.lines:
+					pygame.draw.line(self.tsurface, x.border_color, x.rect.topleft, x.rect.topright, x.bsize)
+					pygame.draw.line(self.tsurface, x.border_color, x.rect.topright, x.rect.bottomright, x.bsize)
+				elif x.rect.midbottom in x.lines and x.rect.midright in x.lines:
+					pygame.draw.line(self.tsurface, x.border_color, x.rect.topleft, x.rect.topright, x.bsize)
+					pygame.draw.line(self.tsurface, x.border_color, x.rect.topleft, x.rect.bottomleft, x.bsize)
+				elif x.rect.midtop in x.lines and x.rect.midright in x.lines:
+					pygame.draw.line(self.tsurface, x.border_color, x.rect.topleft, x.rect.bottomleft, x.bsize)
+					pygame.draw.line(self.tsurface, x.border_color, x.rect.bottomleft, x.rect.bottomright, x.bsize)
+				elif x.rect.midtop in x.lines and x.rect.midleft in x.lines:
+					pygame.draw.line(self.tsurface, x.border_color, x.rect.topright, x.rect.bottomright, x.bsize)
+					pygame.draw.line(self.tsurface, x.border_color, x.rect.bottomleft, x.rect.bottomright, x.bsize)
+				elif x.rect.midbottom in x.lines or x.rect.midtop in x.lines:
+					pygame.draw.line(self.tsurface, x.border_color, x.rect.topleft, x.rect.bottomleft, x.bsize)
+					pygame.draw.line(self.tsurface, x.border_color, x.rect.topright, x.rect.bottomright, x.bsize)
+				elif x.rect.midleft in x.lines or x.rect.midright in x.lines:
+					pygame.draw.line(self.tsurface, x.border_color, x.rect.topleft, x.rect.topright, x.bsize)
+					pygame.draw.line(self.tsurface, x.border_color, x.rect.bottomleft, x.rect.bottomright, x.bsize)
+			else: 
+				pygame.draw.rect(self.tsurface, x.border_color, x.rect, x.bsize)
+			if len(x.lines) > 1 and x.number_color == GREY: # dibujamos las lineas de conexión de la celda si hay
 				pygame.draw.lines(self.tsurface, x.lines_color, False, x.lines, x.lsize)
 			if x.number != 0:
 				self.tsurface.blit(self.nfont.render(str(x.number), True, x.number_color, x.background_color), (x.posx+(CELL_WIDTH - self.nfont.size(str(x.number))[0])/2, x.posy+(CELL_WIDTH - self.nfont.size(str(x.number))[1])/2))
