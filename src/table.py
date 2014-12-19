@@ -133,8 +133,8 @@ class Table():
 			else: 
 				pygame.draw.rect(self.tsurface, x.border_color, x.rect, x.bsize)
 			if len(x.lines) > 1 and x.number_color == GREY: # dibujamos las lineas de conexión de la celda si hay
-				pygame.draw.lines(self.tsurface, x.lines_color, False, x.lines, x.lsize)
-			if x.number != 0:
+				pygame.draw.lines(self.tsurface, self.history[0].color, False, x.lines, x.lsize)
+			if (x.number_color != GREY and x.number != 0) or (len(self.history) > 1 and x is self.history[-1]):
 				self.tsurface.blit(self.nfont.render(str(x.number), True, x.number_color, x.background_color), (x.posx+(CELL_WIDTH - self.nfont.size(str(x.number))[0])/2, x.posy+(CELL_WIDTH - self.nfont.size(str(x.number))[1])/2))
 
 	def draw(self):
