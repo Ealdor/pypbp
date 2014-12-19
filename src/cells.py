@@ -50,15 +50,15 @@ class Cell():
 		self.number = number
 		self.color = color
 		self.background_color = WHITE
-		self.border_color = GREY
+		self.border_color = GREY2
 		self.border_color_sprite = RED
 		self.number_color = color
-		self.lines_color = GREY
+		self.lines_color = color
 		self.rect = pygame.Rect(self.posx, self.posy, CELL_WIDTH, CELL_WIDTH)
 		self.connections = []
 		self.lines = [self.rect.center]
-		self.bsize = 1
-		self.lsize = 2
+		self.bsize = 2
+		self.lsize = 4
 
 class CellSprite(pygame.sprite.Sprite):
 	""" Clase que representa el sprite de selección
