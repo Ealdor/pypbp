@@ -51,7 +51,6 @@ class Table():
 		self.tposx = tposx
 		self.tposy = tposy
 		self.tsurface = pygame.Surface([self.twidth*CELL_WIDTH, self.theight*CELL_WIDTH])
-		self.tsurface_aux = None
 		self.old = None
 		self.oldcon = []
 		self.oldhist = []
@@ -81,7 +80,6 @@ class Table():
 				pygame.draw.rect(self.tsurface, cell.border_color, cell.rect, cell.bsize) # dibujamos el borde de la celda
 				if cell.number != 0: # dibujamos el número de la celda si no es cero
 					self.tsurface.blit(self.nfont.render(str(cell.number), True, cell.number_color, cell.background_color), (cell.posx+(CELL_WIDTH - self.nfont.size(str(cell.number))[0])/2, cell.posy+(CELL_WIDTH - self.nfont.size(str(cell.number))[1])/2))
-		self.tsurface_aux = self.tsurface.copy()
 		self.old = self.cellsprite.cell # guardamos el anterior
 
 	def win(self):
@@ -142,17 +140,18 @@ class Table():
 
 		# CONTROLAMOS LA CAMARA
 		sd = self.screen.get_size()
-		camd = (sd[0]/CELL_WIDTH) / 2, (sd[1]/CELL_WIDTH) / 2
+		testh = (self.dim[1] - self.zoom[1])/self.theight # variables para controlar el desplazamiento con zoom
+		testw = (self.dim[0] - self.zoom[0])/self.twidth
+		camd = (sd[0]/(CELL_WIDTH-testw)) / 2, (sd[1]/(CELL_WIDTH-testh)) / 2
 		aux = [0, 0, sd[0], sd[1]] # solo actualizamos la parte de la pantalla que se ve (FPS!!!1!11!!)
 		if self.cellsprite.cell.posx/CELL_WIDTH >= camd[0]-1:
-			aux[0] = (((self.cellsprite.cell.posx/CELL_WIDTH)-camd[0])*CELL_WIDTH)+(2*CELL_WIDTH)
+			
+			aux[0] = (((self.cellsprite.cell.posx/CELL_WIDTH)-camd[0])*(CELL_WIDTH-testw))+(2*CELL_WIDTH)
 		if self.cellsprite.cell.posy/CELL_WIDTH >= camd[1]-1:
-			aux[1] = (((self.cellsprite.cell.posy/CELL_WIDTH)-camd[1])*CELL_WIDTH)+(2*CELL_WIDTH)
+			
+			aux[1] = (((self.cellsprite.cell.posy/CELL_WIDTH)-camd[1])*(CELL_WIDTH-testh))+(2*CELL_WIDTH)
 
 		# DIBUJAMOS
-		self.screen.fill(FONDO)
-		self.tsurface_aux = self.tsurface.copy() # bliteamos una copia de la anterior
-		self.screen.blit(self.tsurface_aux, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), (aux[0], aux[1], sd[0]-2*CELL_WIDTH-4, sd[1]-2*CELL_WIDTH))
 		self.update([self.old]) # ANTERIOR
 		self.update([self.cellsprite.cell]) # ACTUAL
 		self.update(self.cellsprite.cell.connections) # CONEXIONES (levantamos y correcto)
@@ -161,19 +160,21 @@ class Table():
 		self.update(self.oldhist) # HISTORIA (en proceso)
 		if len(self.oldhist) > 0: self.oldhist = []
 		self.sprites_list.draw(self.tsurface) # dibujamos el cellsprite
-		self.screen.blit(self.tsurface, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), (aux[0], aux[1], sd[0]-2*CELL_WIDTH-4, sd[1]-2*CELL_WIDTH))
 		self.old = self.cellsprite.cell # guardamos el anterior
 		
-		# ZOOM
-		if self.zoom != self.dim: 
-			self.screen.fill(FONDO)
-			self.screen.blit(pygame.transform.scale(self.tsurface, self.zoom), (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), aux)
+		self.screen.fill(FONDO)
+		if self.dim != self.zoom:
+			self.screen.blit(pygame.transform.scale(self.tsurface, self.zoom), (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), (aux[0], aux[1], sd[0]-2*CELL_WIDTH-4, sd[1]-2*CELL_WIDTH))
+		else:			
+			self.screen.blit(self.tsurface, (self.tposx*CELL_WIDTH, self.tposy*CELL_WIDTH), (aux[0], aux[1], sd[0]-2*CELL_WIDTH-4, sd[1]-2*CELL_WIDTH))
 		
 		# INTERFAZ
-		if self.tcheck == 0: self.screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 3)) # MARCADOR
+		if self.tcheck == 0: 
+			self.screen.blit(self.nfont.render("WELL DONE!", True, BLUE, FONDO), (CELL_WIDTH, 3)) # MARCADOR
 		else:
 			self.screen.blit(self.nfont.render("Pixel: {0}, {1}".format(self.cellsprite.cell.number, self.cellsprite.cell.color), True, BLACK, FONDO), (CELL_WIDTH, 3))
-			self.screen.blit(self.nfont.render("{0} LEFT".format(self.tcheck), True, RED, FONDO), (CELL_WIDTH*9, 3))
+			self.screen.blit(self.nfont.render("{0} LEFT".format(self.tcheck), True, RED, FONDO), (CELL_WIDTH*14, 3))
+		self.screen.blit(self.nfont.render("ZOOM: x{:.2f}".format(self.zoom[1]/float(self.theight*CELL_WIDTH)), True, GREEN, FONDO), (CELL_WIDTH*9, 3))
 
 	def check(self, event):
 		""" Función para recoger los eventos del teclado 
@@ -214,11 +215,10 @@ class Table():
 			elif event.unicode == '-': # zoom out
 				aux = (self.zoom[0]-self.twidth, self.zoom[1]-self.theight)
 				if aux[0] > 0 and aux[1] > 0:
-					self.cell_move(self.table[0][0])
 					self.zoom = aux
 			elif event.unicode == '+': # restore zoom
 				self.zoom = self.dim
-				self.stop = False
+				# self.stop = False
 			return True
 		elif event.type == pygame.locals.KEYUP and event.key == pygame.locals.K_SPACE: # levantamos el espacio
 			self.process(5, False)
@@ -270,88 +270,87 @@ class Table():
 
 		"""
 
-		if (self.zoom == self.dim):
-			oldCell = self.cellsprite.cell
-			if types == 0: # presionamos del espacio
-				# reglas para INICIAR
-				if oldCell.number != 0 and len(oldCell.connections) == 0:
-					self.history.append(oldCell)
-					self.cell_draw(oldCell, oldCell.color)
-				else:
-					self.stop = True
-			elif types == 5: # levantamos el espacio
-				# reglas para SOLTAR
-				if len(self.history) > 0 and len(self.history) == oldCell.number and self.history[0].number == oldCell.number and oldCell.number_color != GREY:
-					for cell in self.history: # dibujamos
-						cell.connections = self.history
-						if cell.number_color == GREY:
-							cell.number = 0
-						self.cell_draw(cell, self.history[0].color)
-					self.tcheck -= self.history[0].number + self.history[-1].number
-				else: # si no se cumplen las reglas
-					self.oldhist = self.history
-					for cell in self.history: # limpiamos
-						cell.lines = cell.lines[:1]
-						if cell.number_color == GREY:
-							cell.number = 0
-						self.cell_clear(cell)
-				self.history = []
-				self.stop = False
-			elif types == 6: # pulsamos la c
-				if len(oldCell.connections) > 0:
-					self.tcheck += oldCell.connections[0].number + oldCell.connections[-1].number
-					self.oldcon = oldCell.connections
-					for cell in oldCell.connections:
-						self.cell_clear(cell)
-						cell.connections = []
-						cell.lines = cell.lines[:1]
-			elif not self.stop: # si se presiona mov
-				newCellRectY = (self.cellsprite.rect.y+(mov[1]*CELL_WIDTH))/CELL_WIDTH
-				newCellRectX = (self.cellsprite.rect.x+(mov[0]*CELL_WIDTH))/CELL_WIDTH
-				if newCellRectY < self.theight and newCellRectY >= 0 and newCellRectX >=0 and newCellRectX < self.twidth:
-					newCell = self.table[newCellRectX][newCellRectY]
-					# reglas de parada PRE
-					if (newCell.number != 0 and ((len(self.history) > 0 and (newCell.color != self.history[0].color or newCell.number != self.history[0].number)) or (len(self.history) > 0 and len(self.history)+1 != self.history[0].number))) or (space and (newCell in self.history or len(newCell.connections) != 0 or len(oldCell.connections) != 0)):
-						self.stop = True
-					if newCell.number_color == GREY and newCell == self.history[-2]: # ir hacia detras
-						self.stop = False
-					if not self.stop and space:
-						if types == 1: # abajo
-							oldCell.lines.append(oldCell.rect.midbottom)
-							self.cell_move(newCell)
-							newCell.lines.append(newCell.rect.midtop)
-						elif types == 2: # arriba
-							oldCell.lines.append(oldCell.rect.midtop)
-							self.cell_move(newCell)
-							newCell.lines.append(newCell.rect.midbottom)
-						elif types == 3: # izquierda
-							oldCell.lines.append(oldCell.rect.midleft)
-							self.cell_move(newCell)
-							newCell.lines.append(newCell.rect.midright)
-						elif types == 4: # derecha
-							oldCell.lines.append(oldCell.rect.midright)
-							self.cell_move(newCell)
-							newCell.lines.append(newCell.rect.midleft)
-						newCell.lines.append(self.cellsprite.cell.rect.center)
-						if newCell.number != 0:
-							if newCell.number_color == GREY: # ir hacia detras
-								self.cell_clear(oldCell)
-								oldCell.number = 0
-								oldCell.number_color = BLACK
-								self.history = self.history[0:-2]
-								newCell.lines = newCell.lines[0:-3]
-								oldCell.lines = oldCell.lines[0:1]
-							else:
-								self.cell_draw(newCell, newCell.color)
-						else:
-							newCell.background_color = WHITE
-							newCell.number_color = GREY
-							newCell.number = len(self.history)+1
-						self.history.append(newCell)
-					elif not self.stop and not space: # movimiento
-						self.cell_move(newCell)
-				self.stop = False
-			oldCell = self.cellsprite.cell
-			# reglas de parada POST
-			if space and (len(self.history) > 0 and len(self.history) == self.history[0].number): 
+		oldCell = self.cellsprite.cell
+		if types == 0: # presionamos del espacio
+			# reglas para INICIAR
+			if oldCell.number != 0 and len(oldCell.connections) == 0:
+				self.history.append(oldCell)
+				self.cell_draw(oldCell, oldCell.color)
+			else:
 				self.stop = True
+		elif types == 5: # levantamos el espacio
+			# reglas para SOLTAR
+			if len(self.history) > 0 and len(self.history) == oldCell.number and self.history[0].number == oldCell.number and oldCell.number_color != GREY:
+				for cell in self.history: # dibujamos
+					cell.connections = self.history
+					if cell.number_color == GREY:
+						cell.number = 0
+					self.cell_draw(cell, self.history[0].color)
+				self.tcheck -= self.history[0].number + self.history[-1].number
+			else: # si no se cumplen las reglas
+				self.oldhist = self.history
+				for cell in self.history: # limpiamos
+					cell.lines = cell.lines[:1]
+					if cell.number_color == GREY:
+						cell.number = 0
+					self.cell_clear(cell)
+			self.history = []
+			self.stop = False
+		elif types == 6: # pulsamos la c
+			if len(oldCell.connections) > 0:
+				self.tcheck += oldCell.connections[0].number + oldCell.connections[-1].number
+				self.oldcon = oldCell.connections
+				for cell in oldCell.connections:
+					self.cell_clear(cell)
+					cell.connections = []
+					cell.lines = cell.lines[:1]
+		elif not self.stop: # si se presiona mov
+			newCellRectY = (self.cellsprite.rect.y+(mov[1]*CELL_WIDTH))/CELL_WIDTH
+			newCellRectX = (self.cellsprite.rect.x+(mov[0]*CELL_WIDTH))/CELL_WIDTH
+			if newCellRectY < self.theight and newCellRectY >= 0 and newCellRectX >=0 and newCellRectX < self.twidth:
+				newCell = self.table[newCellRectX][newCellRectY]
+				# reglas de parada PRE
+				if (newCell.number != 0 and ((len(self.history) > 0 and (newCell.color != self.history[0].color or newCell.number != self.history[0].number)) or (len(self.history) > 0 and len(self.history)+1 != self.history[0].number))) or (space and (newCell in self.history or len(newCell.connections) != 0 or len(oldCell.connections) != 0)):
+					self.stop = True
+				if newCell.number_color == GREY and newCell == self.history[-2]: # ir hacia detras
+					self.stop = False
+				if not self.stop and space:
+					if types == 1: # abajo
+						oldCell.lines.append(oldCell.rect.midbottom)
+						self.cell_move(newCell)
+						newCell.lines.append(newCell.rect.midtop)
+					elif types == 2: # arriba
+						oldCell.lines.append(oldCell.rect.midtop)
+						self.cell_move(newCell)
+						newCell.lines.append(newCell.rect.midbottom)
+					elif types == 3: # izquierda
+						oldCell.lines.append(oldCell.rect.midleft)
+						self.cell_move(newCell)
+						newCell.lines.append(newCell.rect.midright)
+					elif types == 4: # derecha
+						oldCell.lines.append(oldCell.rect.midright)
+						self.cell_move(newCell)
+						newCell.lines.append(newCell.rect.midleft)
+					newCell.lines.append(self.cellsprite.cell.rect.center)
+					if newCell.number != 0:
+						if newCell.number_color == GREY: # ir hacia detras
+							self.cell_clear(oldCell)
+							oldCell.number = 0
+							oldCell.number_color = BLACK
+							self.history = self.history[0:-2]
+							newCell.lines = newCell.lines[0:-3]
+							oldCell.lines = oldCell.lines[0:1]
+						else:
+							self.cell_draw(newCell, newCell.color)
+					else:
+						newCell.background_color = WHITE
+						newCell.number_color = GREY
+						newCell.number = len(self.history)+1
+					self.history.append(newCell)
+				elif not self.stop and not space: # movimiento
+					self.cell_move(newCell)
+			self.stop = False
+		oldCell = self.cellsprite.cell
+		# reglas de parada POST
+		if space and (len(self.history) > 0 and len(self.history) == self.history[0].number): 
+			self.stop = True
